@@ -1,0 +1,48 @@
+# deps
+node_modules
+.pnp
+.pnp.js
+
+# next
+.next/
+out/
+
+# production
+build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env
+.env*.local
+.env
+.env.production
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# prisma
+prisma/*.db
+prisma/*.db-journal
+
+# screenshots (测试截图不入库)
+screenshots/_thumb_*.png
+screenshot*.py
+seed.py
+ssh_*.py
+PYEOF
+ls .gitignore
+echo "---"
+# init git
+git init 2>&1 | tail -3
+git config user.email "Mavis@local"
+git config user.name "Mavis"
+git add -A
+git status --short | head -20

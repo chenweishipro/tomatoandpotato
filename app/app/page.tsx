@@ -1,0 +1,125 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { PomodoroTimer } from "@/components/pomodoro-timer";
+import { TodoList, type Todo } from "@/components/todo-list";
+import { apiFetch } from "@/lib/api-client";
+
+type Settings = {
+  focusMinutes: number;
+  shortBreakMin: number;
+  longBreakMin: number;
+  pomosBeforeLong: number;
+  autoStartBreak: boolean;
+  soundEnabled: boolean;
+};
+
+export default function AppPage() {
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [activeTodoId, setActiveTodoId] = useState<string | null>(null);
+  const [settings, setSettings] = useState<Settings | null>(null);
+  const [focusCount, setFocusCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [mobileTab, setMobileTab] = useState<"timer" | "todos">("timer");
+
+  const loadTodos = useCallback(async () => {
+    const res = await apiFetch("/api/todos");
+    if (res.ok) {
+      const data = await res.json();
+      setTodos(data.todos);
+    }
+  }, []);
+
+  const loadStats = useCallback(async () => {
+    const res = await apiFetch("/api/stats/today");
+    if (res.ok) {
+      const data = await res.json();
+      setFocusCount(data.focusCount);
+    }
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const settingsRes = await apiFetch("/api/settings");
+      if (settingsRes.ok) {
+        const s = await settingsRes.json();
+        setSettings(s);
+      }
+      await Promise.all([loadTodos(), loadStats()]);
+      setLoading(false);
+    })();
+  }, [loadTodos, loadStats]);
+
+  // 持久化 activeTodoId
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem("activeTodoId");
+    if (saved) setActiveTodoId(saved);
+  }, []);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (activeTodoId) localStorage.setItem("activeTodoId", activeTodoId);
+    else localStorage.removeItem("activeTodoId");
+  }, [activeTodoId]);
+
+  if (loading || !settings) {
+    return (
+      <div className="flex items-center justify-center h-64 text-gray-400">
+        加载中…
+      </div>
+    );
+  }
+
+  const activeTodo = todos.find((t) => t.id === activeTodoId) ?? null;
+
+  return (
+    <>
+      {/* 移动端 tab 切换 */}
+      <div className="sm:hidden flex gap-1 p-1 bg-gray-100/80 rounded-full mb-4 w-fit mx-auto">
+        <button
+          onClick={() => setMobileTab("timer")}
+          className={
+            "px-5 py-1.5 text-sm font-medium rounded-full transition " +
+            (mobileTab === "timer"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500")
+          }
+        >
+          🍅 番茄
+        </button>
+        <button
+          onClick={() => setMobileTab("todos")}
+          className={
+            "px-5 py-1.5 text-sm font-medium rounded-full transition " +
+            (mobileTab === "todos"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500")
+          }
+        >
+          ✅ 任务 {todos.filter((t) => t.status !== "done" && t.status !== "archived").length > 0 &&
+            `(${todos.filter((t) => t.status !== "done" && t.status !== "archived").length})`}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-5">
+        <div className={mobileTab === "timer" ? "block" : "hidden sm:block"}>
+          <PomodoroTimer
+            settings={settings}
+            activeTodo={activeTodo ? { id: activeTodo.id, title: activeTodo.title } : null}
+            focusCount={focusCount}
+            onClearActiveTodo={() => setActiveTodoId(null)}
+            onPomodoroCompleted={() => loadStats()}
+          />
+        </div>
+        <div className={mobileTab === "todos" ? "block" : "hidden sm:block"}>
+          <TodoList
+            todos={todos}
+            activeTodoId={activeTodoId}
+            onSetActive={setActiveTodoId}
+            onRefresh={loadTodos}
+          />
+        </div>
+      </div>
+    </>
+  );
+}

@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html, body {
+  height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply bg-gradient-to-br from-orange-50 via-white to-red-50 text-gray-900;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* 番茄进度环 */
+.timer-ring {
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+.timer-ring__progress {
+  transition: stroke-dashoffset 1s linear;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300/60 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400/80;
+}
+
+/* focus 样式 */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  @apply outline-none ring-2 ring-tomato-400 ring-offset-2 ring-offset-white rounded-lg;
+}

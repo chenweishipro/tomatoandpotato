@@ -1,0 +1,210 @@
+"use client";
+import { apiFetch } from "@/lib/api-client";
+
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+
+type Settings = {
+  focusMinutes: number;
+  shortBreakMin: number;
+  longBreakMin: number;
+  pomosBeforeLong: number;
+  autoStartBreak: boolean;
+  desktopNotif: boolean;
+  soundEnabled: boolean;
+  soundType: string;
+};
+
+export default function SettingsPage() {
+  const [settings, setSettings] = useState<Settings | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    apiFetch("/api/settings")
+      .then((r) => r.json())
+      .then(setSettings);
+  }, []);
+
+  async function save(patch: Partial<Settings>) {
+    if (!settings) return;
+    const next = { ...settings, ...patch };
+    setSettings(next);
+    setSaving(true);
+    setSaved(false);
+    await apiFetch("/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500);
+  }
+
+  if (!settings) return <div className="text-center text-gray-400 py-20">加载中…</div>;
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-5">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-gray-900">设置</h1>
+        {saved && (
+          <motion.span
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-sm text-leaf-600"
+          >
+            ✓ 已保存
+          </motion.span>
+        )}
+      </div>
+
+      <Section title="🍅 番茄钟时长">
+        <NumberRow
+          label="专注"
+          suffix="分钟"
+          value={settings.focusMinutes}
+          min={5}
+          max={90}
+          step={5}
+          onChange={(v) => save({ focusMinutes: v })}
+        />
+        <NumberRow
+          label="短休息"
+          suffix="分钟"
+          value={settings.shortBreakMin}
+          min={1}
+          max={30}
+          onChange={(v) => save({ shortBreakMin: v })}
+        />
+        <NumberRow
+          label="长休息"
+          suffix="分钟"
+          value={settings.longBreakMin}
+          min={5}
+          max={60}
+          step={5}
+          onChange={(v) => save({ longBreakMin: v })}
+        />
+        <NumberRow
+          label="几个番茄后长休息"
+          suffix="个"
+          value={settings.pomosBeforeLong}
+          min={2}
+          max={8}
+          onChange={(v) => save({ pomosBeforeLong: v })}
+        />
+      </Section>
+
+      <Section title="⚙️ 行为">
+        <ToggleRow
+          label="自动开始休息"
+          desc="番茄完成后，自动开始倒计时休息"
+          checked={settings.autoStartBreak}
+          onChange={(v) => save({ autoStartBreak: v })}
+        />
+        <ToggleRow
+          label="桌面通知"
+          desc="番茄完成时弹出系统通知"
+          checked={settings.desktopNotif}
+          onChange={(v) => save({ desktopNotif: v })}
+        />
+        <ToggleRow
+          label="声音提醒"
+          desc="番茄完成时播放提示音"
+          checked={settings.soundEnabled}
+          onChange={(v) => save({ soundEnabled: v })}
+        />
+      </Section>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100">
+      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+        {title}
+      </h2>
+      <div className="divide-y divide-gray-100">{children}</div>
+    </div>
+  );
+}
+
+function NumberRow({
+  label,
+  suffix,
+  value,
+  min,
+  max,
+  step = 1,
+  onChange,
+}: {
+  label: string;
+  suffix: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between py-3">
+      <div className="text-sm text-gray-700">{label}</div>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onChange(Math.max(min, value - step))}
+          disabled={value <= min}
+          className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 transition"
+        >
+          −
+        </button>
+        <div className="w-16 text-center">
+          <span className="text-lg font-semibold text-gray-900 tabular-nums">{value}</span>
+          <span className="text-xs text-gray-500 ml-1">{suffix}</span>
+        </div>
+        <button
+          onClick={() => onChange(Math.min(max, value + step))}
+          disabled={value >= max}
+          className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-30 transition"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ToggleRow({
+  label,
+  desc,
+  checked,
+  onChange,
+}: {
+  label: string;
+  desc?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between py-3">
+      <div>
+        <div className="text-sm text-gray-700">{label}</div>
+        {desc && <div className="text-xs text-gray-500 mt-0.5">{desc}</div>}
+      </div>
+      <button
+        onClick={() => onChange(!checked)}
+        className={
+          "relative w-11 h-6 rounded-full transition " +
+          (checked ? "bg-tomato-500" : "bg-gray-200")
+        }
+      >
+        <motion.div
+          animate={{ x: checked ? 22 : 2 }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm"
+        />
+      </button>
+    </div>
+  );
+}
