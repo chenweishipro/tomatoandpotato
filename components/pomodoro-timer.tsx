@@ -129,10 +129,11 @@ export function PomodoroTimer({
     return settings.longBreakMin * 60;
   }, [phase, settings]);
 
-  // 切 phase 时重置剩余时间
+  // 切 phase 时只重置 remaining 和完成状态，**不要改 running**
+  // 这样手动点「短休/长休」时不会打断正在跑的 timer
+  // （自动阶段切换时 handleComplete 已经会 setRunning(false)）
   useEffect(() => {
     setRemaining(totalSeconds());
-    setRunning(false);
     setCompletedThisSession(false);
   }, [phase, totalSeconds]);
 
