@@ -10,21 +10,27 @@ type Week = { date: string; count: number; minutes: number };
 type Month = { year: number; month: number; days: Record<string, number> };
 type Heatmap = { year: number; days: Record<string, number> };
 
-const WEEKDAY_LABELS = ["一", "二", "三", "四", "五", "六", "日"];
+// 用完整 "周一" 而不是 "一" — "一" 字跟破折号视觉上一样，用户看着像缺数据
+const WEEKDAY_LABELS = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
 const MONTH_NAMES = [
   "一月", "二月", "三月", "四月", "五月", "六月",
   "七月", "八月", "九月", "十月", "十一月", "十二月",
 ];
+// 年热力图顶部月份标签（英文 3 字符，GitHub 原生风格）
+const MONTH_LABELS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**
- * GitHub 风格热力图配色（统一 5 档）
- * 用绝对分档，避免单周/单月 0-1 个番茄时 maxCount 归一化看不出层次
+ * GitHub 风格热力图配色（统一 5 档，相对归一化）
+ * 用 max 归一化避免数据稀疏时断层（0/125 直接到最深色没过渡）
+ * max=0 时退化到绝对分档（默认浅绿 1 = 最小）
  */
-function cellColor(c: number): string {
+function cellColor(c: number, max: number): string {
   if (c === 0) return "bg-gray-100";
-  if (c === 1) return "bg-leaf-200";
-  if (c <= 3) return "bg-leaf-400";
-  if (c <= 5) return "bg-leaf-500";
+  if (max === 0) return "bg-leaf-200";
+  const ratio = c / max;
+  if (ratio < 0.25) return "bg-leaf-200";
+  if (ratio < 0.5)  return "bg-leaf-400";
+  if (ratio < 0.75) return "bg-leaf-500";
   return "bg-leaf-600";
 }
 
@@ -177,6 +183,7 @@ function HeatmapSection({
  */
 function WeekHeatmap({ week }: { week: Week[] }) {
   const today = startOfDay().getTime();
+  const weekMax = week.reduce((m, d) => Math.max(m, d.count), 0);
   return (
     <div className="flex justify-center sm:justify-start">
       <div className="flex items-end gap-3 sm:gap-4">
@@ -194,7 +201,7 @@ function WeekHeatmap({ week }: { week: Week[] }) {
                 transition={{ delay: i * 0.02 }}
                 className={
                   "w-7 h-7 sm:w-9 sm:h-9 rounded-md transition cursor-pointer hover:ring-2 hover:ring-leaf-400 " +
-                  cellColor(count) +
+                  cellColor(count, weekMax) +
                   (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white" : "")
                 }
                 title={dt ? `${dt.toISOString().slice(0, 10)} - ${count} 🍅` : ""}
@@ -241,6 +248,8 @@ function MonthHeatmap({
   }
   while (cells.length < 42) cells.push(null);
 
+  const monthMax = Object.values(days).reduce((m, n) => Math.max(m, n), 0);
+
   return (
     <div>
       <div className="grid grid-cols-7 gap-1.5 mb-2">
@@ -262,7 +271,7 @@ function MonthHeatmap({
               transition={{ delay: i * 0.003 }}
               className={
                 "aspect-square rounded-sm transition cursor-pointer hover:ring-2 hover:ring-leaf-400 relative group " +
-                cellColor(cell.count) +
+                cellColor(cell.count, monthMax) +
                 (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white" : "")
               }
               title={`${cell.key} - ${cell.count} 🍅`}
@@ -280,6 +289,7 @@ function MonthHeatmap({
 
 /**
  * 年：53×7 小方块（GitHub 风格）
+ * 顶部加月份标签，每个月的第一周上方显示
  */
 function YearHeatmap({ year, days }: { year: number; days: Record<string, number> }) {
   const cells: { date: string; count: number }[] = [];
@@ -302,9 +312,45 @@ function YearHeatmap({ year, days }: { year: number; days: Record<string, number
     weeks.push(paddedCells.slice(i, i + 7));
   }
 
+  // 年内最大 count 供 cellColor 归一化
+  const yearMax = cells.reduce((m, c) => Math.max(m, c.count), 0);
+
+  // 找每个月第一天属于第几周（1-indexed），用于在那一周上方显示月份
+  // GitHub 风格：月份标签在该月 1 号所在周上方
+  const monthWeek: Record<number, number> = {};
+  weeks.forEach((week, wi) => {
+    for (const cell of week) {
+      if (!cell) continue;
+      const d = new Date(cell.date);
+      const m = d.getMonth();
+      const day = d.getDate();
+      // 每月 1 号（或者该周第一次出现该月）= 该月标签位置
+      if (day === 1 || (monthWeek[m] === undefined && d.getDate() <= 7)) {
+        if (monthWeek[m] === undefined) {
+          monthWeek[m] = wi;
+        }
+      }
+    }
+  });
+
   return (
     <div className="overflow-x-auto">
       <div className="inline-flex flex-col gap-1 min-w-full">
+        {/* 月份标签行 */}
+        <div className="flex gap-1 pl-0" style={{ paddingLeft: 0 }}>
+          {/* 占位对齐到周图第一个 cell（GitHub: 7 row, 月标签在 row0 上方，宽度=1 周） */}
+          <div className="flex gap-1">
+            {weeks.map((_, wi) => {
+              // 找这个月标签应该出现在哪一列
+              const month = Object.entries(monthWeek).find(([_, w]) => w === wi);
+              return (
+                <div key={wi} className="w-3 text-[9px] text-gray-400 font-medium text-left">
+                  {month ? MONTH_LABELS_EN[parseInt(month[0])] : ""}
+                </div>
+              );
+            })}
+          </div>
+        </div>
         <div className="flex gap-1">
           {weeks.map((week, wi) => (
             <div key={wi} className="flex flex-col gap-1">
@@ -313,7 +359,7 @@ function YearHeatmap({ year, days }: { year: number; days: Record<string, number
                   key={ci}
                   className={
                     "w-3 h-3 rounded-sm transition hover:ring-1 hover:ring-leaf-400 cursor-pointer " +
-                    (cell ? cellColor(cell.count) : "bg-transparent")
+                    (cell ? cellColor(cell.count, yearMax) : "bg-transparent")
                   }
                   title={cell ? `${cell.date} - ${cell.count} 🍅` : ""}
                 />
