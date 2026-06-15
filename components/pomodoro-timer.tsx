@@ -3,7 +3,7 @@ import { apiFetch } from "@/lib/api-client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, RotateCcw, Coffee, Volume2, VolumeX, Check } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, X } from "lucide-react";
 import { formatTime, cn } from "@/lib/utils";
 
 type Settings = {
@@ -32,6 +32,42 @@ const SOUND_LABELS: Record<string, string> = {
   ocean: "🌊 海浪",
   none: "🔇 静音",
 };
+
+// localStorage key：页面刷新后从这里恢复 timer
+const TIMER_STATE_KEY = "tomato-timer-state-v1";
+type TimerState = {
+  phase: Phase;
+  // 上次记录时的「剩余秒数」
+  remainingAtSave: number;
+  // 这次开始/恢复的 timestamp（ms）；paused 时为 null
+  startedAt: number | null;
+  // 当前阶段的总秒数（用于页面刷新后校验）
+  totalAtSave: number;
+};
+
+function loadTimerState(): TimerState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(TIMER_STATE_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw) as TimerState;
+    if (!s.phase || typeof s.remainingAtSave !== "number") return null;
+    return s;
+  } catch {
+    return null;
+  }
+}
+
+function saveTimerState(s: TimerState | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (s === null) {
+      localStorage.removeItem(TIMER_STATE_KEY);
+    } else {
+      localStorage.setItem(TIMER_STATE_KEY, JSON.stringify(s));
+    }
+  } catch {}
+}
 
 /**
  * Web Audio API 合成白噪音 / 环境音
@@ -118,6 +154,7 @@ export function PomodoroTimer({
   const [sound, setSound] = useState<"rain" | "cafe" | "forest" | "ocean" | "none">("rain");
   const [soundOn, setSoundOn] = useState(settings.soundEnabled);
   const [completedThisSession, setCompletedThisSession] = useState(false);
+  const [hydrated, setHydrated] = useState(false); // 避免 SSR / hydration mismatch
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const noiseRef = useRef<{ source: AudioBufferSourceNode; gain: GainNode; ctx: AudioContext } | null>(null);
@@ -136,6 +173,49 @@ export function PomodoroTimer({
     setRemaining(totalSeconds());
     setCompletedThisSession(false);
   }, [phase, totalSeconds]);
+
+  // 页面刷新后从 localStorage 恢复 timer 状态
+  useEffect(() => {
+    const s = loadTimerState();
+    if (s) {
+      const totalForPhase = s.phase === "focus" ? settings.focusMinutes * 60
+        : s.phase === "short_break" ? settings.shortBreakMin * 60
+        : settings.longBreakMin * 60;
+      // 如果存的时候 running 且有 startedAt，用现在时间减去当时时间算真正剩余
+      if (s.startedAt && s.totalAtSave === totalForPhase) {
+        const elapsed = Math.floor((Date.now() - s.startedAt) / 1000);
+        const realRemaining = Math.max(0, s.remainingAtSave - elapsed);
+        setPhase(s.phase);
+        setRemaining(realRemaining);
+        setRunning(realRemaining > 0);
+        // 恢复了 running 的话重新记录 startedAt
+        if (realRemaining > 0) {
+          saveTimerState({ phase: s.phase, remainingAtSave: realRemaining, startedAt: Date.now(), totalAtSave: totalForPhase });
+        } else {
+          // 已经超期了，清理
+          saveTimerState(null);
+        }
+      } else {
+        // paused 状态或 phase 不一致
+        setPhase(s.phase);
+        setRemaining(s.totalAtSave === totalForPhase ? s.remainingAtSave : totalForPhase);
+        setRunning(false);
+      }
+    }
+    setHydrated(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // running/remaining/phase 变化时存 localStorage（hydrated 之前不存避免覆盖）
+  useEffect(() => {
+    if (!hydrated) return;
+    if (running) {
+      saveTimerState({ phase, remainingAtSave: remaining, startedAt: Date.now(), totalAtSave: totalSeconds() });
+    } else {
+      // 不跑时也存 remaining 状态，让刷新后能恢复
+      saveTimerState({ phase, remainingAtSave: remaining, startedAt: null, totalAtSave: totalSeconds() });
+    }
+  }, [running, remaining, phase, hydrated, totalSeconds]);
 
   // 滴答
   useEffect(() => {
@@ -282,10 +362,20 @@ export function PomodoroTimer({
   function handleReset() {
     setRunning(false);
     setRemaining(totalSeconds());
+    setCompletedThisSession(false);
+    saveTimerState(null);
   }
 
-  function switchPhase(p: Phase) {
-    setPhase(p);
+  // 「放弃番茄」：停止当前 timer，剩余时间抹零（不记完成）
+  function handleAbandon() {
+    if (phase === "focus" && remaining < totalSeconds()) {
+      // 跳个确认
+      if (!confirm("确定放弃这个番茄？本次专注不会记入完成数。")) return;
+    }
+    setRunning(false);
+    setRemaining(totalSeconds());
+    setCompletedThisSession(false);
+    saveTimerState(null);
   }
 
   const progress = 1 - remaining / totalSeconds();
@@ -302,22 +392,14 @@ export function PomodoroTimer({
 
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
-      {/* 阶段切换 */}
-      <div className="flex justify-center gap-1 mb-6 p-1 bg-gray-100/80 rounded-full w-fit mx-auto">
-        {(["focus", "short_break", "long_break"] as Phase[]).map((p) => (
-          <button
-            key={p}
-            onClick={() => switchPhase(p)}
-            className={cn(
-              "px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-full transition",
-              phase === p
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            )}
-          >
-            {p === "focus" ? "🍅 专注" : p === "short_break" ? "☕ 短休" : "🌿 长休"}
-          </button>
-        ))}
+      {/* 阶段标签（仅作显示，不提供切换） */}
+      <div className="flex justify-center mb-4">
+        <div className={cn(
+          "px-4 py-1.5 text-sm font-medium rounded-full",
+          phase === "focus" ? "bg-tomato-50 text-tomato-600" : "bg-leaf-50 text-leaf-600"
+        )}>
+          {phase === "focus" ? "🍅 专注时间" : phase === "short_break" ? "☕ 短休息" : "🌿 长休息"}
+        </div>
       </div>
 
       {/* 当前 Todo */}
@@ -420,11 +502,13 @@ export function PomodoroTimer({
           </button>
         )}
         <button
-          onClick={handleReset}
+          onClick={handleAbandon}
           className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-medium rounded-2xl transition active:scale-95"
-          aria-label="重置"
+          aria-label="放弃番茄"
+          title="放弃番茄（本次专注不计入完成数）"
         >
-          <RotateCcw size={18} />
+          <X size={18} />
+          <span className="hidden sm:inline">放弃番茄</span>
         </button>
       </div>
 
