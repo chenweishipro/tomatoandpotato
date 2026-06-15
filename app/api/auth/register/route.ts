@@ -34,15 +34,12 @@ export async function POST(req: Request) {
 
   const passwordHash = await bcrypt.hash(password, 10);
 
+  // 分两步创建避免 SQLite nested write FK 问题
   const user = await prisma.user.create({
-    data: {
-      email,
-      name,
-      passwordHash,
-      settings: {
-        create: {}, // 用默认设置
-      },
-    },
+    data: { email, name, passwordHash },
+  });
+  await prisma.settings.create({
+    data: { userId: user.id },
   });
 
   return NextResponse.json({ id: user.id, email: user.email });

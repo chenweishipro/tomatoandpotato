@@ -49,6 +49,19 @@ fi
 # === 2. Tarball ===
 log "2. tarball $TARBALL"
 rm -f "$TARBALL"
+# **修复关键 bug**: next build 会自动生成 .next/standalone/.env，里面的
+# DATABASE_URL=file:./dev.db 是相对路径。prisma client 启动时读它，会在
+# prisma client 同级目录创建空 dev.db，覆盖我们用绝对路径配置的真 db。
+# 解决: 改写 .env 为绝对路径
+if [ -f ".next/standalone/.env" ]; then
+  sed -i 's|DATABASE_URL=.*|DATABASE_URL="file:'"$APP_DIR"'/prisma/tomato.db"|' .next/standalone/.env
+  log "  patched .next/standalone/.env: $(grep DATABASE_URL .next/standalone/.env)"
+fi
+if [ -f ".next/standalone/.env.production" ]; then
+  sed -i 's|DATABASE_URL=.*|DATABASE_URL="file:'"$APP_DIR"'/prisma/tomato.db"|' .next/standalone/.env.production
+fi
+# 删 prisma client 目录的 dev.db（如果存在）
+find .next/standalone -name "dev.db" -delete 2>/dev/null || true
 tar -czf "$TARBALL" \
   --exclude='node_modules' \
   --exclude='.next/cache' \
@@ -119,6 +132,14 @@ echo "--- 4.7 cp prisma client"
 mkdir -p $APP_DIR/.next/standalone/node_modules
 cp -r $APP_DIR/node_modules/.prisma $APP_DIR/.next/standalone/node_modules/ 2>/dev/null || true
 cp -r $APP_DIR/node_modules/@prisma $APP_DIR/.next/standalone/node_modules/ 2>/dev/null || true
+
+# 4.7.1 **关键**：删 standalone 里的 .env 和 dev.db
+# next build 自动生成 .next/standalone/.env，里面 DATABASE_URL=file:./dev.db 是相对路径
+# prisma client 启动时会读它，在 client 目录创建空 dev.db，导致 service 用了错的 db
+echo "--- 4.7.1 rm standalone .env and dev.db"
+rm -f $APP_DIR/.next/standalone/.env $APP_DIR/.next/standalone/.env.production
+rm -f $APP_DIR/.next/standalone/node_modules/.prisma/client/dev.db
+rm -f $APP_DIR/dev.db
 
 # 4.8 DB 初始化（如果需要）
 if [ ! -s "$APP_DIR/prisma/tomato.db" ] || [ "$RESET_DB" = "1" ]; then
