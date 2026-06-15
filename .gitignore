@@ -31,12 +31,25 @@ next-env.d.ts
 # prisma
 prisma/*.db
 prisma/*.db-journal
+# prisma build 内部生成空 db（next build 时）— 不入库
+prisma/prisma/
 
 # screenshots (测试截图不入库)
 screenshots/_thumb_*.png
 screenshot*.py
 seed.py
 ssh_*.py
+
+# tarballs (deploy 临时产物)
+/tmp/tomato-*.tar.gz
+
+# editor
+.vscode/
+.idea/
+
+# logs
+*.log
+local-test/
 PYEOF
 ls .gitignore
 echo "---"
