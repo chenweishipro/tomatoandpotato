@@ -200,7 +200,7 @@ function WeekHeatmap({ week }: { week: Week[] }) {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: i * 0.02 }}
                 className={
-                  "w-7 h-7 sm:w-9 sm:h-9 rounded-md transition cursor-pointer hover:ring-2 hover:ring-leaf-400 " +
+                  "w-9 h-9 sm:w-10 sm:h-10 rounded-md transition cursor-pointer hover:ring-2 hover:ring-leaf-400 " +
                   cellColor(count, weekMax) +
                   (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white" : "")
                 }
@@ -252,7 +252,7 @@ function MonthHeatmap({
 
   return (
     <div className="overflow-x-auto -mx-2 px-2 pb-1">
-      <div className="min-w-[280px]">
+      <div className="w-fit mx-auto sm:mx-0">
         <div className="grid grid-cols-7 gap-1 mb-2">
           {WEEKDAY_LABELS.map((w) => (
             <div key={w} className="text-center text-[10px] text-gray-400 font-medium">
@@ -271,7 +271,7 @@ function MonthHeatmap({
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: i * 0.003 }}
                 className={
-                  "aspect-square rounded-sm transition cursor-pointer hover:ring-2 hover:ring-leaf-400 relative group " +
+                  "w-9 h-9 sm:w-10 sm:h-10 rounded-sm transition cursor-pointer hover:ring-2 hover:ring-leaf-400 relative group " +
                   cellColor(cell.count, monthMax) +
                   (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white" : "")
                 }
