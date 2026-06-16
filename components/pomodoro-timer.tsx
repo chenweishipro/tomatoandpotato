@@ -151,6 +151,10 @@ export function PomodoroTimer({
   const [phase, setPhase] = useState<Phase>("focus");
   const [running, setRunning] = useState(false);
   const [remaining, setRemaining] = useState(settings.focusMinutes * 60);
+  // currentSessionTotal: 本次 session 启动时锁定的总秒数。
+  // 调设置里的专注/休息时长不影响正在跑的 timer。
+  // 仅在 phase 切换或 reset/abandon/恢复时重置。
+  const [currentSessionTotal, setCurrentSessionTotal] = useState(settings.focusMinutes * 60);
   const [sound, setSound] = useState<"rain" | "cafe" | "forest" | "ocean" | "none">("rain");
   const [soundOn, setSoundOn] = useState(settings.soundEnabled);
   const [completedThisSession, setCompletedThisSession] = useState(false);
@@ -166,13 +170,18 @@ export function PomodoroTimer({
     return settings.longBreakMin * 60;
   }, [phase, settings]);
 
-  // 切 phase 时只重置 remaining 和完成状态，**不要改 running**
+  // 切 phase 时只重置 remaining/completed/currentSessionTotal，**不要改 running**
   // 这样手动点「短休/长休」时不会打断正在跑的 timer
   // （自动阶段切换时 handleComplete 已经会 setRunning(false)）
+  // 关键：依赖只有 phase，不是 totalSeconds。否则 settings 重新加载时
+  // totalSeconds 引用变化会触发 effect，重置正在跑的 timer。
   useEffect(() => {
-    setRemaining(totalSeconds());
+    const newTotal = totalSeconds();
+    setRemaining(newTotal);
+    setCurrentSessionTotal(newTotal);
     setCompletedThisSession(false);
-  }, [phase, totalSeconds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   // 页面刷新后从 localStorage 恢复 timer 状态
   useEffect(() => {
@@ -187,6 +196,8 @@ export function PomodoroTimer({
         const realRemaining = Math.max(0, s.remainingAtSave - elapsed);
         setPhase(s.phase);
         setRemaining(realRemaining);
+        // 锁住 session 启动时的总时长（调设置后 currentSessionTotal 不变）
+        setCurrentSessionTotal(s.totalAtSave);
         setRunning(realRemaining > 0);
         // 恢复了 running 的话重新记录 startedAt
         if (realRemaining > 0) {
@@ -198,7 +209,10 @@ export function PomodoroTimer({
       } else {
         // paused 状态或 phase 不一致
         setPhase(s.phase);
-        setRemaining(s.totalAtSave === totalForPhase ? s.remainingAtSave : totalForPhase);
+        const remain = s.totalAtSave === totalForPhase ? s.remainingAtSave : totalForPhase;
+        setRemaining(remain);
+        // 锁定老 session total，防止调设置后篡改
+        setCurrentSessionTotal(s.totalAtSave || totalForPhase);
         setRunning(false);
       }
     }
@@ -207,15 +221,18 @@ export function PomodoroTimer({
   }, []);
 
   // running/remaining/phase 变化时存 localStorage（hydrated 之前不存避免覆盖）
+  // 存的是 currentSessionTotal（启动时锁定的总秒数），不是 totalSeconds()。
+  // 这样调设置后存的不被污染。
   useEffect(() => {
     if (!hydrated) return;
     if (running) {
-      saveTimerState({ phase, remainingAtSave: remaining, startedAt: Date.now(), totalAtSave: totalSeconds() });
+      saveTimerState({ phase, remainingAtSave: remaining, startedAt: Date.now(), totalAtSave: currentSessionTotal });
     } else {
       // 不跑时也存 remaining 状态，让刷新后能恢复
-      saveTimerState({ phase, remainingAtSave: remaining, startedAt: null, totalAtSave: totalSeconds() });
+      saveTimerState({ phase, remainingAtSave: remaining, startedAt: null, totalAtSave: currentSessionTotal });
     }
-  }, [running, remaining, phase, hydrated, totalSeconds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, remaining, phase, hydrated]);
 
   // 滴答
   useEffect(() => {
@@ -361,7 +378,9 @@ export function PomodoroTimer({
 
   function handleReset() {
     setRunning(false);
-    setRemaining(totalSeconds());
+    const t = totalSeconds();
+    setRemaining(t);
+    setCurrentSessionTotal(t);
     setCompletedThisSession(false);
     saveTimerState(null);
   }
@@ -375,7 +394,9 @@ export function PomodoroTimer({
         if (!confirm("确定放弃这个番茄？本次专注不会记入完成数。")) return;
       }
       setRunning(false);
-      setRemaining(totalSeconds());
+      const t = totalSeconds();
+      setRemaining(t);
+      setCurrentSessionTotal(t);
       setCompletedThisSession(false);
       saveTimerState(null);
     } else {
@@ -387,7 +408,8 @@ export function PomodoroTimer({
     }
   }
 
-  const progress = 1 - remaining / totalSeconds();
+  // progress 用 session 启动时锁定的总秒数，调设置不影响
+  const progress = currentSessionTotal > 0 ? 1 - remaining / currentSessionTotal : 0;
   const R = 120;
   const C = 2 * Math.PI * R;
 
