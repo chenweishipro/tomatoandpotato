@@ -151,6 +151,12 @@ export function PomodoroTimer({
   const [phase, setPhase] = useState<Phase>("focus");
   const [running, setRunning] = useState(false);
   const [remaining, setRemaining] = useState(settings.focusMinutes * 60);
+  // sessionStartedTotal: 启动当前 session 时的总秒数（锁定）。
+  // 用途：handleComplete 计算 durationMin = sessionStartedTotal / 60
+  // （不记新设置的分钟数, 记实际启动时计划的）。
+  // progress 不用这个, progress 直接用 totalSeconds() (新 settings),
+  // 调设置后 progress 环立即变, 让你看到“设了变了”。
+  const [sessionStartedTotal, setSessionStartedTotal] = useState(settings.focusMinutes * 60);
   const [sound, setSound] = useState<"rain" | "cafe" | "forest" | "ocean" | "none">("rain");
   const [soundOn, setSoundOn] = useState(settings.soundEnabled);
   const [completedThisSession, setCompletedThisSession] = useState(false);
@@ -166,13 +172,15 @@ export function PomodoroTimer({
     return settings.longBreakMin * 60;
   }, [phase, settings]);
 
-  // 切 phase 时只重置 remaining 和完成状态，**不要改 running**
+  // 切 phase 时只重置 remaining/completed/sessionStartedTotal，**不要改 running**
   // 这样手动点「短休/长休」时不会打断正在跑的 timer
   // （自动阶段切换时 handleComplete 已经会 setRunning(false)）
   // 关键：依赖只有 phase，不是 totalSeconds。否则 settings 重新加载时
   // totalSeconds 引用变化会触发 effect，重置正在跑的 timer。
   useEffect(() => {
-    setRemaining(totalSeconds());
+    const newTotal = totalSeconds();
+    setRemaining(newTotal);
+    setSessionStartedTotal(newTotal);
     setCompletedThisSession(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
@@ -184,16 +192,20 @@ export function PomodoroTimer({
       const totalForPhase = s.phase === "focus" ? settings.focusMinutes * 60
         : s.phase === "short_break" ? settings.shortBreakMin * 60
         : settings.longBreakMin * 60;
+      // 关键：调设置后 s.totalAtSave 跟 totalForPhase 不一致，
+      // 也要用 s.totalAtSave (session 启动时锁的总秒数) 跟 s.remainingAtSave (原剩余)。
+      // 不这样调设置后回主页会看到 timer 变成新设置的总秒数（重置）。
       // 如果存的时候 running 且有 startedAt，用现在时间减去当时时间算真正剩余
-      if (s.startedAt && s.totalAtSave === totalForPhase) {
+      if (s.startedAt && s.totalAtSave > 0) {
         const elapsed = Math.floor((Date.now() - s.startedAt) / 1000);
         const realRemaining = Math.max(0, s.remainingAtSave - elapsed);
         setPhase(s.phase);
         setRemaining(realRemaining);
+        // 锁住 session 启动时的总时长（调设置后 sessionStartedTotal 不变）
+        setSessionStartedTotal(s.totalAtSave);
         setRunning(realRemaining > 0);
-        // 恢复了 running 的话重新记录 startedAt
         if (realRemaining > 0) {
-          saveTimerState({ phase: s.phase, remainingAtSave: realRemaining, startedAt: Date.now(), totalAtSave: totalForPhase });
+          saveTimerState({ phase: s.phase, remainingAtSave: realRemaining, startedAt: Date.now(), totalAtSave: s.totalAtSave });
         } else {
           // 已经超期了，清理
           saveTimerState(null);
@@ -201,7 +213,10 @@ export function PomodoroTimer({
       } else {
         // paused 状态或 phase 不一致
         setPhase(s.phase);
-        setRemaining(s.totalAtSave === totalForPhase ? s.remainingAtSave : totalForPhase);
+        // 保留老 session 的 remaining，不动 s.remainingAtSave
+        setRemaining(s.remainingAtSave);
+        // 锁定老 session total，防止调设置后篡改
+        setSessionStartedTotal(s.totalAtSave || totalForPhase);
         setRunning(false);
       }
     }
@@ -210,14 +225,16 @@ export function PomodoroTimer({
   }, []);
 
   // running/remaining/phase 变化时存 localStorage（hydrated 之前不存避免覆盖）
-  // 注意：不依赖 totalSeconds，避免 settings 变化时重置正在跑的 timer
+  // 存的是 sessionStartedTotal（启动时锁定的总秒数），不是 totalSeconds()。
+  // 这样调设置后存的不被污染。
+  // 注意：不依赖 totalSeconds/settings，避免 settings 变化时重置正在跑的 timer
   useEffect(() => {
     if (!hydrated) return;
     if (running) {
-      saveTimerState({ phase, remainingAtSave: remaining, startedAt: Date.now(), totalAtSave: totalSeconds() });
+      saveTimerState({ phase, remainingAtSave: remaining, startedAt: Date.now(), totalAtSave: sessionStartedTotal });
     } else {
       // 不跑时也存 remaining 状态，让刷新后能恢复
-      saveTimerState({ phase, remainingAtSave: remaining, startedAt: null, totalAtSave: totalSeconds() });
+      saveTimerState({ phase, remainingAtSave: remaining, startedAt: null, totalAtSave: sessionStartedTotal });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, remaining, phase, hydrated]);
@@ -267,7 +284,7 @@ export function PomodoroTimer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type: "focus",
-            durationMin: settings.focusMinutes,
+            durationMin: Math.round(sessionStartedTotal / 60),
             todoId: activeTodo?.id ?? null,
           }),
         });
@@ -366,24 +383,38 @@ export function PomodoroTimer({
 
   function handleReset() {
     setRunning(false);
-    setRemaining(totalSeconds());
+    const t = totalSeconds();
+    setRemaining(t);
+    setSessionStartedTotal(t);
     setCompletedThisSession(false);
     saveTimerState(null);
   }
 
-  // 「放弃番茄」：停止当前 timer，剩余时间抹零（不记完成）
+  // 「放弃/跳过」按钮：
+  //   - 专注阶段：放弃本次番茄，剩余时间抹零（不记完成）
+  //   - 短/长休阶段：跳过休息，强制切回专注
   function handleAbandon() {
-    if (phase === "focus" && remaining < totalSeconds()) {
-      // 跳个确认
-      if (!confirm("确定放弃这个番茄？本次专注不会记入完成数。")) return;
+    if (phase === "focus") {
+      if (remaining < totalSeconds()) {
+        if (!confirm("确定放弃这个番茄？本次专注不会记入完成数。")) return;
+      }
+      setRunning(false);
+      const t = totalSeconds();
+      setRemaining(t);
+      setSessionStartedTotal(t);
+      setCompletedThisSession(false);
+      saveTimerState(null);
+    } else {
+      // 休息阶段：跳过休息，强制切回专注
+      // [phase] effect 会自动重置 remaining/completedThisSession
+      setRunning(false);
+      setPhase("focus");
+      saveTimerState(null);
     }
-    setRunning(false);
-    setRemaining(totalSeconds());
-    setCompletedThisSession(false);
-    saveTimerState(null);
   }
 
-  const progress = 1 - remaining / totalSeconds();
+  // progress 用 totalSeconds() (新 settings)，调设置后环立刻变
+  const progress = totalSeconds() > 0 ? 1 - remaining / totalSeconds() : 0;
   const R = 120;
   const C = 2 * Math.PI * R;
 
@@ -509,11 +540,13 @@ export function PomodoroTimer({
         <button
           onClick={handleAbandon}
           className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-medium rounded-2xl transition active:scale-95"
-          aria-label="放弃番茄"
-          title="放弃番茄（本次专注不计入完成数）"
+          aria-label={phase === "focus" ? "放弃番茄" : "跳过休息"}
+          title={phase === "focus" ? "放弃番茄（本次专注不计入完成数）" : "跳过休息，强制切回专注"}
         >
           <X size={18} />
-          <span className="hidden sm:inline">放弃番茄</span>
+          <span className="hidden sm:inline">
+            {phase === "focus" ? "放弃番茄" : "跳过休息"}
+          </span>
         </button>
       </div>
 

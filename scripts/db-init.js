@@ -14,10 +14,23 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
-// prisma client 在 load time 就读 env，所以必须在 require 前设好
-const DB_PATH = "/opt/tomato/prisma/tomato.db";
-process.env.DATABASE_URL = `file:${DB_PATH}`;
-const PRISMA_CLIENT_PATH = "/opt/tomato/node_modules/.prisma/client";
+// 加载 .env (prisma client 在 require 时读 env)
+try {
+  const envPath = path.join(process.cwd(), ".env");
+  if (fs.existsSync(envPath)) {
+    for (const line of fs.readFileSync(envPath, "utf-8").split("\n")) {
+      const m = line.match(/^([A-Z_][A-Z0-9_]*)=["']?(.+?)["']?$/);
+      if (m && !process.env[m[1]]) process.env[m[1]] = m[2];
+    }
+  }
+} catch {}
+
+// 从 cwd 推断 DB 路径（生产 /opt/tomato, 测试 /opt/tomato-test）
+const APP_DIR = process.env.APP_DIR || path.basename(process.cwd()) === "tomato-test" ? "/opt/tomato-test" : "/opt/tomato";
+const DB_PATH = process.env.DATABASE_URL?.replace("file:", "") || `${APP_DIR}/prisma/tomato.db`;
+
+// 找 prisma client: 优先 standalone 路径, 退到 local
+let PRISMA_CLIENT_PATH = `${APP_DIR}/.next/standalone/node_modules/.prisma/client`;
 const SQL = `
   CREATE TABLE IF NOT EXISTS "User" (
     id TEXT PRIMARY KEY,
