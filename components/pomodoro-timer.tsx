@@ -151,10 +151,12 @@ export function PomodoroTimer({
   const [phase, setPhase] = useState<Phase>("focus");
   const [running, setRunning] = useState(false);
   const [remaining, setRemaining] = useState(settings.focusMinutes * 60);
-  // currentSessionTotal: 本次 session 启动时锁定的总秒数。
-  // 调设置里的专注/休息时长不影响正在跑的 timer。
-  // 仅在 phase 切换或 reset/abandon/恢复时重置。
-  const [currentSessionTotal, setCurrentSessionTotal] = useState(settings.focusMinutes * 60);
+  // sessionStartedTotal: 启动当前 session 时的总秒数（锁定）。
+  // 用途：handleComplete 计算 durationMin = sessionStartedTotal / 60
+  // （不记新设置的分钟数, 记实际启动时计划的）。
+  // progress 不用这个, progress 直接用 totalSeconds() (新 settings),
+  // 调设置后 progress 环立即变, 让你看到“设了变了”。
+  const [sessionStartedTotal, setSessionStartedTotal] = useState(settings.focusMinutes * 60);
   const [sound, setSound] = useState<"rain" | "cafe" | "forest" | "ocean" | "none">("rain");
   const [soundOn, setSoundOn] = useState(settings.soundEnabled);
   const [completedThisSession, setCompletedThisSession] = useState(false);
@@ -170,7 +172,7 @@ export function PomodoroTimer({
     return settings.longBreakMin * 60;
   }, [phase, settings]);
 
-  // 切 phase 时只重置 remaining/completed/currentSessionTotal，**不要改 running**
+  // 切 phase 时只重置 remaining/completed/sessionStartedTotal，**不要改 running**
   // 这样手动点「短休/长休」时不会打断正在跑的 timer
   // （自动阶段切换时 handleComplete 已经会 setRunning(false)）
   // 关键：依赖只有 phase，不是 totalSeconds。否则 settings 重新加载时
@@ -178,7 +180,7 @@ export function PomodoroTimer({
   useEffect(() => {
     const newTotal = totalSeconds();
     setRemaining(newTotal);
-    setCurrentSessionTotal(newTotal);
+    setSessionStartedTotal(newTotal);
     setCompletedThisSession(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
@@ -196,8 +198,8 @@ export function PomodoroTimer({
         const realRemaining = Math.max(0, s.remainingAtSave - elapsed);
         setPhase(s.phase);
         setRemaining(realRemaining);
-        // 锁住 session 启动时的总时长（调设置后 currentSessionTotal 不变）
-        setCurrentSessionTotal(s.totalAtSave);
+        // 锁住 session 启动时的总时长（调设置后 sessionStartedTotal 不变）
+        setSessionStartedTotal(s.totalAtSave);
         setRunning(realRemaining > 0);
         // 恢复了 running 的话重新记录 startedAt
         if (realRemaining > 0) {
@@ -212,7 +214,7 @@ export function PomodoroTimer({
         const remain = s.totalAtSave === totalForPhase ? s.remainingAtSave : totalForPhase;
         setRemaining(remain);
         // 锁定老 session total，防止调设置后篡改
-        setCurrentSessionTotal(s.totalAtSave || totalForPhase);
+        setSessionStartedTotal(s.totalAtSave || totalForPhase);
         setRunning(false);
       }
     }
@@ -221,15 +223,15 @@ export function PomodoroTimer({
   }, []);
 
   // running/remaining/phase 变化时存 localStorage（hydrated 之前不存避免覆盖）
-  // 存的是 currentSessionTotal（启动时锁定的总秒数），不是 totalSeconds()。
+  // 存的是 sessionStartedTotal（启动时锁定的总秒数），不是 totalSeconds()。
   // 这样调设置后存的不被污染。
   useEffect(() => {
     if (!hydrated) return;
     if (running) {
-      saveTimerState({ phase, remainingAtSave: remaining, startedAt: Date.now(), totalAtSave: currentSessionTotal });
+      saveTimerState({ phase, remainingAtSave: remaining, startedAt: Date.now(), totalAtSave: sessionStartedTotal });
     } else {
       // 不跑时也存 remaining 状态，让刷新后能恢复
-      saveTimerState({ phase, remainingAtSave: remaining, startedAt: null, totalAtSave: currentSessionTotal });
+      saveTimerState({ phase, remainingAtSave: remaining, startedAt: null, totalAtSave: sessionStartedTotal });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, remaining, phase, hydrated]);
@@ -279,7 +281,7 @@ export function PomodoroTimer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type: "focus",
-            durationMin: settings.focusMinutes,
+            durationMin: Math.round(sessionStartedTotal / 60),
             todoId: activeTodo?.id ?? null,
           }),
         });
@@ -380,7 +382,7 @@ export function PomodoroTimer({
     setRunning(false);
     const t = totalSeconds();
     setRemaining(t);
-    setCurrentSessionTotal(t);
+    setSessionStartedTotal(t);
     setCompletedThisSession(false);
     saveTimerState(null);
   }
@@ -396,7 +398,7 @@ export function PomodoroTimer({
       setRunning(false);
       const t = totalSeconds();
       setRemaining(t);
-      setCurrentSessionTotal(t);
+      setSessionStartedTotal(t);
       setCompletedThisSession(false);
       saveTimerState(null);
     } else {
@@ -408,8 +410,8 @@ export function PomodoroTimer({
     }
   }
 
-  // progress 用 session 启动时锁定的总秒数，调设置不影响
-  const progress = currentSessionTotal > 0 ? 1 - remaining / currentSessionTotal : 0;
+  // progress 用 totalSeconds() (新 settings)，调设置后环立刻变
+  const progress = totalSeconds() > 0 ? 1 - remaining / totalSeconds() : 0;
   const R = 120;
   const C = 2 * Math.PI * R;
 
@@ -504,15 +506,7 @@ export function PomodoroTimer({
                 <div className="text-6xl sm:text-7xl font-light tabular-nums text-gray-900">
                   {formatTime(remaining)}
                 </div>
-                <div className="text-xs text-gray-400 mt-2 flex items-center justify-center gap-2">
-                  <span>本 session 共 <span className="tabular-nums font-medium text-gray-600">{formatTime(currentSessionTotal)}</span></span>
-                  {currentSessionTotal !== totalSeconds() && (
-                    <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px]">
-                      设置已调为 {formatTime(totalSeconds())}
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs text-gray-400 mt-1">
+                <div className="text-xs text-gray-400 mt-2">
                   今日已完成 {focusCount} 🍅
                 </div>
               </motion.div>
@@ -529,7 +523,7 @@ export function PomodoroTimer({
             className="flex items-center gap-2 px-7 py-3 bg-tomato-500 hover:bg-tomato-600 text-white font-medium rounded-2xl transition active:scale-95 shadow-md shadow-tomato-200"
           >
             <Play size={18} fill="currentColor" />
-            {remaining === currentSessionTotal ? "开始" : "继续"}
+            {remaining === totalSeconds() ? "开始" : "继续"}
           </button>
         ) : (
           <button
