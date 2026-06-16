@@ -14,8 +14,10 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
-const DB_PATH = process.env.DATABASE_URL?.replace("file:", "") || "/opt/tomato/prisma/tomato.db";
-const PRISMA_CLIENT_PATH = "/opt/tomato/.next/standalone/node_modules/.prisma/client";
+// prisma client 在 load time 就读 env，所以必须在 require 前设好
+const DB_PATH = "/opt/tomato/prisma/tomato.db";
+process.env.DATABASE_URL = `file:${DB_PATH}`;
+const PRISMA_CLIENT_PATH = "/opt/tomato/node_modules/.prisma/client";
 const SQL = `
   CREATE TABLE IF NOT EXISTS "User" (
     id TEXT PRIMARY KEY,
@@ -81,6 +83,10 @@ async function main() {
   if (!fs.existsSync(prismaClientPath)) {
     // 退到 local
     prismaClientPath = path.join(process.cwd(), "node_modules", "@prisma", "client");
+  }
+  if (!fs.existsSync(prismaClientPath)) {
+    // 退到 standalone
+    prismaClientPath = "/opt/tomato/.next/standalone/node_modules/.prisma/client";
   }
   if (!fs.existsSync(prismaClientPath)) {
     console.error(`prisma client not found at ${prismaClientPath}`);

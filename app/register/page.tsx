@@ -35,7 +35,7 @@ export default function RegisterPage() {
     // 自动登录
     await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
-    router.push("/app");
+    router.push("/tomato/app/");
     router.refresh();
   }
 
@@ -111,7 +111,7 @@ export default function RegisterPage() {
 
         <p className="text-center text-sm text-gray-500 mt-5">
           已有账号？{" "}
-          <Link href="/login" className="text-tomato-600 hover:text-tomato-700 font-medium">
+          <Link href="/tomato/login/" className="text-tomato-600 hover:text-tomato-700 font-medium">
             登录
           </Link>
         </p>

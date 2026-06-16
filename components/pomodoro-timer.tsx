@@ -169,10 +169,13 @@ export function PomodoroTimer({
   // 切 phase 时只重置 remaining 和完成状态，**不要改 running**
   // 这样手动点「短休/长休」时不会打断正在跑的 timer
   // （自动阶段切换时 handleComplete 已经会 setRunning(false)）
+  // 关键：依赖只有 phase，不是 totalSeconds。否则 settings 重新加载时
+  // totalSeconds 引用变化会触发 effect，重置正在跑的 timer。
   useEffect(() => {
     setRemaining(totalSeconds());
     setCompletedThisSession(false);
-  }, [phase, totalSeconds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   // 页面刷新后从 localStorage 恢复 timer 状态
   useEffect(() => {
@@ -207,6 +210,7 @@ export function PomodoroTimer({
   }, []);
 
   // running/remaining/phase 变化时存 localStorage（hydrated 之前不存避免覆盖）
+  // 注意：不依赖 totalSeconds，避免 settings 变化时重置正在跑的 timer
   useEffect(() => {
     if (!hydrated) return;
     if (running) {
@@ -215,7 +219,8 @@ export function PomodoroTimer({
       // 不跑时也存 remaining 状态，让刷新后能恢复
       saveTimerState({ phase, remainingAtSave: remaining, startedAt: null, totalAtSave: totalSeconds() });
     }
-  }, [running, remaining, phase, hydrated, totalSeconds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, remaining, phase, hydrated]);
 
   // 滴答
   useEffect(() => {
