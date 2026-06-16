@@ -185,6 +185,21 @@ export function PomodoroTimer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
+  // settings 变化时同步 fresh / reset 状态的 remaining。
+  // 场景：没在跑番茄时（没打开番茄）调专注时长 → 期望 timer 立刻用新值。
+  // 但如果正在跑 或 已跑过部分（remaining != sessionStartedTotal）→ 不动，不打断。
+  useEffect(() => {
+    if (!hydrated) return;
+    if (running) return;
+    if (remaining !== sessionStartedTotal) return; // 跑过 / 暂停中有剩余
+    const newTotal = totalSeconds();
+    if (newTotal !== sessionStartedTotal) {
+      setRemaining(newTotal);
+      setSessionStartedTotal(newTotal);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, settings.focusMinutes, settings.shortBreakMin, settings.longBreakMin, totalSeconds]);
+
   // 页面刷新后从 localStorage 恢复 timer 状态
   useEffect(() => {
     const s = loadTimerState();
