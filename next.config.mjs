@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
-  basePath: "/tomato",
+  basePath: "/tomato-test",
   trailingSlash: true,
   reactStrictMode: true,
 };

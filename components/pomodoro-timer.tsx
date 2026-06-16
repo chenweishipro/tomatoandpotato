@@ -366,16 +366,25 @@ export function PomodoroTimer({
     saveTimerState(null);
   }
 
-  // 「放弃番茄」：停止当前 timer，剩余时间抹零（不记完成）
+  // 「放弃/跳过」按钮：
+  //   - 专注阶段：放弃本次番茄，剩余时间抹零（不记完成）
+  //   - 短/长休阶段：跳过休息，强制切回专注
   function handleAbandon() {
-    if (phase === "focus" && remaining < totalSeconds()) {
-      // 跳个确认
-      if (!confirm("确定放弃这个番茄？本次专注不会记入完成数。")) return;
+    if (phase === "focus") {
+      if (remaining < totalSeconds()) {
+        if (!confirm("确定放弃这个番茄？本次专注不会记入完成数。")) return;
+      }
+      setRunning(false);
+      setRemaining(totalSeconds());
+      setCompletedThisSession(false);
+      saveTimerState(null);
+    } else {
+      // 休息阶段：跳过休息，强制切回专注
+      // [phase] effect 会自动重置 remaining/completedThisSession
+      setRunning(false);
+      setPhase("focus");
+      saveTimerState(null);
     }
-    setRunning(false);
-    setRemaining(totalSeconds());
-    setCompletedThisSession(false);
-    saveTimerState(null);
   }
 
   const progress = 1 - remaining / totalSeconds();
@@ -504,11 +513,13 @@ export function PomodoroTimer({
         <button
           onClick={handleAbandon}
           className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-medium rounded-2xl transition active:scale-95"
-          aria-label="放弃番茄"
-          title="放弃番茄（本次专注不计入完成数）"
+          aria-label={phase === "focus" ? "放弃番茄" : "跳过休息"}
+          title={phase === "focus" ? "放弃番茄（本次专注不计入完成数）" : "跳过休息，强制切回专注"}
         >
           <X size={18} />
-          <span className="hidden sm:inline">放弃番茄</span>
+          <span className="hidden sm:inline">
+            {phase === "focus" ? "放弃番茄" : "跳过休息"}
+          </span>
         </button>
       </div>
 
