@@ -504,7 +504,15 @@ export function PomodoroTimer({
                 <div className="text-6xl sm:text-7xl font-light tabular-nums text-gray-900">
                   {formatTime(remaining)}
                 </div>
-                <div className="text-xs text-gray-400 mt-2">
+                <div className="text-xs text-gray-400 mt-2 flex items-center justify-center gap-2">
+                  <span>本 session 共 <span className="tabular-nums font-medium text-gray-600">{formatTime(currentSessionTotal)}</span></span>
+                  {currentSessionTotal !== totalSeconds() && (
+                    <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded text-[10px]">
+                      设置已调为 {formatTime(totalSeconds())}
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
                   今日已完成 {focusCount} 🍅
                 </div>
               </motion.div>
@@ -521,7 +529,7 @@ export function PomodoroTimer({
             className="flex items-center gap-2 px-7 py-3 bg-tomato-500 hover:bg-tomato-600 text-white font-medium rounded-2xl transition active:scale-95 shadow-md shadow-tomato-200"
           >
             <Play size={18} fill="currentColor" />
-            {remaining === totalSeconds() ? "开始" : "继续"}
+            {remaining === currentSessionTotal ? "开始" : "继续"}
           </button>
         ) : (
           <button
