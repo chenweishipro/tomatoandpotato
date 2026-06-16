@@ -192,8 +192,11 @@ export function PomodoroTimer({
       const totalForPhase = s.phase === "focus" ? settings.focusMinutes * 60
         : s.phase === "short_break" ? settings.shortBreakMin * 60
         : settings.longBreakMin * 60;
+      // 关键：调设置后 s.totalAtSave 跟 totalForPhase 不一致，
+      // 也要用 s.totalAtSave (session 启动时锁的总秒数) 跟 s.remainingAtSave (原剩余)。
+      // 不这样调设置后回主页会看到 timer 变成新设置的总秒数（重置）。
       // 如果存的时候 running 且有 startedAt，用现在时间减去当时时间算真正剩余
-      if (s.startedAt && s.totalAtSave === totalForPhase) {
+      if (s.startedAt && s.totalAtSave > 0) {
         const elapsed = Math.floor((Date.now() - s.startedAt) / 1000);
         const realRemaining = Math.max(0, s.remainingAtSave - elapsed);
         setPhase(s.phase);
@@ -201,9 +204,8 @@ export function PomodoroTimer({
         // 锁住 session 启动时的总时长（调设置后 sessionStartedTotal 不变）
         setSessionStartedTotal(s.totalAtSave);
         setRunning(realRemaining > 0);
-        // 恢复了 running 的话重新记录 startedAt
         if (realRemaining > 0) {
-          saveTimerState({ phase: s.phase, remainingAtSave: realRemaining, startedAt: Date.now(), totalAtSave: totalForPhase });
+          saveTimerState({ phase: s.phase, remainingAtSave: realRemaining, startedAt: Date.now(), totalAtSave: s.totalAtSave });
         } else {
           // 已经超期了，清理
           saveTimerState(null);
@@ -211,8 +213,8 @@ export function PomodoroTimer({
       } else {
         // paused 状态或 phase 不一致
         setPhase(s.phase);
-        const remain = s.totalAtSave === totalForPhase ? s.remainingAtSave : totalForPhase;
-        setRemaining(remain);
+        // 保留老 session 的 remaining，不动 s.remainingAtSave
+        setRemaining(s.remainingAtSave);
         // 锁定老 session total，防止调设置后篡改
         setSessionStartedTotal(s.totalAtSave || totalForPhase);
         setRunning(false);
