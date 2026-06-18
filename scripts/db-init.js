@@ -98,6 +98,10 @@ async function main() {
     prismaClientPath = path.join(process.cwd(), "node_modules", "@prisma", "client");
   }
   if (!fs.existsSync(prismaClientPath)) {
+    // 退到 standalone
+    prismaClientPath = "/opt/tomato/.next/standalone/node_modules/.prisma/client";
+  }
+  if (!fs.existsSync(prismaClientPath)) {
     console.error(`prisma client not found at ${prismaClientPath}`);
     console.error("请先 npm install --omit=dev 装 prod deps");
     process.exit(1);

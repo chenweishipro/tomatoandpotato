@@ -26,7 +26,7 @@ export default function LoginPage() {
     if (res?.error) {
       setError("邮箱或密码错误");
     } else {
-      router.push("/app");
+      router.push("/tomato/app/");
       router.refresh();
     }
   }
@@ -91,7 +91,7 @@ export default function LoginPage() {
 
         <p className="text-center text-sm text-gray-500 mt-5">
           还没有账号？{" "}
-          <Link href="/register" className="text-tomato-600 hover:text-tomato-700 font-medium">
+          <Link href="/tomato/register/" className="text-tomato-600 hover:text-tomato-700 font-medium">
             立即注册
           </Link>
         </p>
