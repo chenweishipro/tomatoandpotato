@@ -273,6 +273,7 @@ DATABASE_URL="file:$APP_DIR/prisma/$DB_NAME"
 NEXTAUTH_URL="http://122.51.221.63$BASE_PATH"
 NEXTAUTH_SECRET="dev-secret-change-me-in-production-please-make-this-random-32-chars"
 HOSTNAME="127.0.0.1"
+PORT="$PORT"
 EOF
 echo "  .env written"
 
