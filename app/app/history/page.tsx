@@ -20,9 +20,20 @@ export default function HistoryPage() {
 
   useEffect(() => {
     apiFetch("/api/pomodoros")
-      .then((r) => r.json())
-      .then((d) => {
-        setItems(d.pomodoros);
+      .then(async (r) => {
+        if (!r.ok) {
+          // 401 等: 不要一直转圈, 提示错误
+          setItems([]);
+          setLoading(false);
+          return;
+        }
+        const d = await r.json();
+        setItems(d.pomodoros ?? []);
+        setLoading(false);
+      })
+      .catch(() => {
+        // 网络错误 / 解析错误: 也要退出 loading
+        setItems([]);
         setLoading(false);
       });
   }, []);
