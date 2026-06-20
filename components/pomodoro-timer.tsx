@@ -387,7 +387,7 @@ export function PomodoroTimer({
     };
   }, [sound, soundOn]);
 
-  // iOS 17: 页面切走后 AudioContext 自动 suspended, 回来后需要 resume
+  // iOS 17/26: 页面切走后 AudioContext 自动 suspended, 回来后需要 resume
   useEffect(() => {
     if (typeof document === "undefined") return;
     const handler = () => {
@@ -401,6 +401,29 @@ export function PomodoroTimer({
     document.addEventListener("visibilitychange", handler);
     return () => document.removeEventListener("visibilitychange", handler);
   }, []);
+
+  // iOS 26: 告诉系统这是媒体音频, Personalized Volume 才会听控制中心
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
+    if (!soundOn || sound === "none") {
+      navigator.mediaSession.metadata = null;
+      return;
+    }
+    const names: Record<string, string> = {
+      rain: "雨声 · 番茄土豆",
+      cafe: "咖啡馆 · 番茄土豆",
+      forest: "森林 · 番茄土豆",
+      ocean: "海浪 · 番茄土豆",
+    };
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: names[sound] || "环境音乐",
+      artist: "番茄土豆专注",
+      album: "Pomodoro Ambience",
+    });
+    return () => {
+      navigator.mediaSession.metadata = null;
+    };
+  }, [sound, soundOn]);
 
   function handleStart() {
     if (typeof window !== "undefined" && "Notification" in window) {
