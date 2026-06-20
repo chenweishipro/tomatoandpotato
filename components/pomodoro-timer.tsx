@@ -417,8 +417,9 @@ export function PomodoroTimer({
           ctx.resume().then(() => {
             // 成功后再确保 source 在跑 (iOS pause 后可能停了)
             try {
-              if (noiseRef.current && noiseRef.current.source && noiseRef.current.source.playbackState === "suspended") {
-                noiseRef.current.source.start();
+              const src = noiseRef.current?.source as any;
+              if (src && (src.playbackState === "suspended" || src.playbackState === "finished")) {
+                src.start();
               }
             } catch {}
           }).catch(() => {
