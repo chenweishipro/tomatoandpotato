@@ -365,10 +365,14 @@ export function PomodoroTimer({
       const { source, gain, filter } = createNoiseSource(audioCtx, sound as any);
       // 连接扬声器
       gain.connect(audioCtx.destination);
-      // 淡入
+      // 淡入 (iOS 17 上默认音量太小声会被环境噪音埋, 默认 0.4, 上限 1.0)
       gain.gain.setValueAtTime(0, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.5);
+      gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + 0.5);
       source.start();
+      // iOS 17 Safari 严格策略: audioCtx 可能创建后自动 suspended, 需要在 user gesture 内 resume
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume().catch(() => {});
+      }
       noiseRef.current = { source, gain, ctx: audioCtx };
     } catch (e) {
       console.error("noise init failed", e);
@@ -383,15 +387,47 @@ export function PomodoroTimer({
     };
   }, [sound, soundOn]);
 
+  // iOS 17: 页面切走后 AudioContext 自动 suspended, 回来后需要 resume
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const handler = () => {
+      if (document.visibilityState === "visible" && noiseRef.current) {
+        const ctx = noiseRef.current.ctx;
+        if (ctx.state === "suspended") {
+          ctx.resume().catch(() => {});
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
+  }, []);
+
   function handleStart() {
     if (typeof window !== "undefined" && "Notification" in window) {
       if (Notification.permission === "default") {
         Notification.requestPermission();
       }
     }
-    // 恢复 AudioContext（自动播放策略）
-    if (noiseRef.current && noiseRef.current.ctx.state === "suspended") {
-      noiseRef.current.ctx.resume().catch(() => {});
+    // 恢复 AudioContext（iOS 17 Safari 自动播放策略）
+    if (noiseRef.current) {
+      const ctx = noiseRef.current.ctx;
+      // 多次重试 resume: iOS Safari 第一次 gesture 内 resume 可能失败
+      const tryResume = () => {
+        if (ctx.state === "suspended") {
+          ctx.resume().then(() => {
+            // 成功后再确保 source 在跑 (iOS pause 后可能停了)
+            try {
+              if (noiseRef.current && noiseRef.current.source && noiseRef.current.source.playbackState === "suspended") {
+                noiseRef.current.source.start();
+              }
+            } catch {}
+          }).catch(() => {
+            // 1s 后重试
+            setTimeout(tryResume, 1000);
+          });
+        }
+      };
+      tryResume();
     }
     setRunning(true);
   }
