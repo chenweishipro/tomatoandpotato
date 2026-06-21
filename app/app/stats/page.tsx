@@ -18,7 +18,6 @@ const MONTH_NAMES = [
 ];
 // 年热力图顶部月份标签（英文 3 字符，GitHub 原生风格）
 const MONTH_LABELS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
 /**
  * GitHub 风格热力图配色（统一 5 档，相对归一化）
  * 用 max 归一化避免数据稀疏时断层（0/125 直接到最深色没过渡）
@@ -290,82 +289,61 @@ function MonthHeatmap({
 }
 
 /**
- * 年：53×7 小方块（GitHub 风格）
- * 顶部加月份标签，每个月的第一周上方显示
+ * 年：12 月 × 7 周几 矩阵
+ * 横轴 12 个月份，纵轴 7 天，每格是该月-该周几的累计番茄数
+ * 紧凑看清：1）哪个月份多 2）一周哪天高/低 3）季节趋势
  */
 function YearHeatmap({ year, days }: { year: number; days: Record<string, number> }) {
-  const cells: { date: string; count: number }[] = [];
-  const startDate = new Date(year, 0, 1);
-  const endDate = new Date(year, 11, 31);
+  // 构造 12 × 7 矩阵
+  const matrix: number[][] = Array.from({ length: 12 }, () => Array(7).fill(0));
+  // 每天贡献给该月该周几 (Mon=0, ..., Sun=6)
+  const cellDates: string[][] = Array.from({ length: 12 }, () => Array(7).fill(0).map(() => ""));
 
-  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-    const key = d.toISOString().slice(0, 10);
-    cells.push({ date: key, count: days[key] ?? 0 });
-  }
-
-  const firstDay = new Date(year, 0, 1).getDay();
-  const paddedCells: ({ date: string; count: number } | null)[] = [
-    ...Array(firstDay).fill(null),
-    ...cells,
-  ];
-
-  const weeks: ({ date: string; count: number } | null)[][] = [];
-  for (let i = 0; i < paddedCells.length; i += 7) {
-    weeks.push(paddedCells.slice(i, i + 7));
-  }
-
-  // 年内最大 count 供 cellColor 归一化
-  const yearMax = cells.reduce((m, c) => Math.max(m, c.count), 0);
-
-  // 找每个月第一天属于第几周（1-indexed），用于在那一周上方显示月份
-  // GitHub 风格：月份标签在该月 1 号所在周上方
-  const monthWeek: Record<number, number> = {};
-  weeks.forEach((week, wi) => {
-    for (const cell of week) {
-      if (!cell) continue;
-      const d = new Date(cell.date);
-      const m = d.getMonth();
-      const day = d.getDate();
-      // 每月 1 号（或者该周第一次出现该月）= 该月标签位置
-      if (day === 1 || (monthWeek[m] === undefined && d.getDate() <= 7)) {
-        if (monthWeek[m] === undefined) {
-          monthWeek[m] = wi;
-        }
-      }
+  for (let m = 0; m < 12; m++) {
+    const daysInMonth = new Date(year, m + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, m, d);
+      const weekday = (date.getDay() + 6) % 7; // Mon=0, ..., Sun=6
+      const key = date.toISOString().slice(0, 10);
+      matrix[m][weekday] += days[key] ?? 0;
+      cellDates[m][weekday] = key; // 最后一个被赋值的为该月-该周几最后一天
     }
-  });
+  }
+
+  // 年内最大 count
+  const yearMax = matrix.flat().reduce((m, n) => Math.max(m, n), 0);
 
   return (
-    <div className="overflow-x-auto">
-      <div className="inline-flex flex-col gap-1 min-w-full">
-        {/* 月份标签行 */}
-        <div className="flex gap-1 pl-0" style={{ paddingLeft: 0 }}>
-          {/* 占位对齐到周图第一个 cell（GitHub: 7 row, 月标签在 row0 上方，宽度=1 周） */}
-          <div className="flex gap-1">
-            {weeks.map((_, wi) => {
-              // 找这个月标签应该出现在哪一列
-              const month = Object.entries(monthWeek).find(([_, w]) => w === wi);
-              return (
-                <div key={wi} className="w-3 text-[9px] text-gray-400 font-medium text-left">
-                  {month ? MONTH_LABELS_EN[parseInt(month[0])] : ""}
-                </div>
-              );
-            })}
-          </div>
+    <div className="overflow-x-auto -mx-2 px-2 pb-1">
+      <div className="w-fit mx-auto sm:mx-0">
+        {/* 月份横轴 */}
+        <div className="grid grid-cols-12 gap-1 mb-2">
+          {MONTH_NAMES.map((m) => (
+            <div key={m} className="text-center text-[10px] text-gray-400 font-medium">
+              {m}
+            </div>
+          ))}
         </div>
-        <div className="flex gap-1">
-          {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-1">
-              {week.map((cell, ci) => (
-                <div
-                  key={ci}
-                  className={
-                    "w-3 h-3 rounded-sm transition hover:ring-1 hover:ring-leaf-400 cursor-pointer " +
-                    (cell ? cellColor(cell.count, yearMax) : "bg-transparent")
-                  }
-                  title={cell ? `${cell.date} - ${cell.count} 🍅` : ""}
-                />
-              ))}
+        {/* 7 行（周一到周日）× 12 列 */}
+        <div className="grid grid-cols-1 gap-1">
+          {WEEKDAY_LABELS.map((w, wi) => (
+            <div key={w} className="grid grid-cols-[3.5rem_1fr] items-center gap-2">
+              <div className="text-[10px] text-gray-400 font-medium text-right">{w}</div>
+              <div className="grid grid-cols-12 gap-1">
+                {matrix.map((row, mi) => (
+                  <motion.div
+                    key={mi}
+                    initial={{ scale: 0.6, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: (wi * 12 + mi) * 0.003 }}
+                    className={
+                      "h-7 sm:h-8 rounded-sm cursor-pointer transition hover:ring-2 hover:ring-leaf-400 " +
+                      cellColor(row[wi], yearMax)
+                    }
+                    title={`${year}年 ${mi + 1}月 ${w} — 累计 ${row[wi]} 🍅`}
+                  />
+                ))}
+              </div>
             </div>
           ))}
         </div>

@@ -30,7 +30,6 @@ const SOUND_LABELS: Record<string, string> = {
   cafe: "☕ 咖啡馆",
   forest: "🌲 森林",
   ocean: "🌊 海浪",
-  none: "🔇 静音",
 };
 
 // localStorage key：页面刷新后从这里恢复 timer
@@ -157,7 +156,7 @@ export function PomodoroTimer({
   // progress 不用这个, progress 直接用 totalSeconds() (新 settings),
   // 调设置后 progress 环立即变, 让你看到“设了变了”。
   const [sessionStartedTotal, setSessionStartedTotal] = useState(settings.focusMinutes * 60);
-  const [sound, setSound] = useState<"rain" | "cafe" | "forest" | "ocean" | "none">("rain");
+  const [sound, setSound] = useState<"rain" | "cafe" | "forest" | "ocean">("rain");
   const [soundOn, setSoundOn] = useState(settings.soundEnabled);
   const [completedThisSession, setCompletedThisSession] = useState(false);
   const [hydrated, setHydrated] = useState(false); // 避免 SSR / hydration mismatch
@@ -357,7 +356,7 @@ export function PomodoroTimer({
       audioRef.current.pause();
       audioRef.current = null;
     }
-    if (!soundOn || sound === "none") return;
+    if (!soundOn) return;
 
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -405,7 +404,7 @@ export function PomodoroTimer({
   // iOS 26: 告诉系统这是媒体音频, Personalized Volume 才会听控制中心
   useEffect(() => {
     if (typeof navigator === "undefined" || !("mediaSession" in navigator)) return;
-    if (!soundOn || sound === "none") {
+    if (!soundOn) {
       navigator.mediaSession.metadata = null;
       return;
     }
@@ -633,12 +632,12 @@ export function PomodoroTimer({
         >
           {soundOn ? <Volume2 size={14} /> : <VolumeX size={14} />}
         </button>
-        {(Object.keys(SOUND_LABELS) as ("rain" | "cafe" | "forest" | "ocean" | "none")[]).map((s) => (
+        {(Object.keys(SOUND_LABELS) as ("rain" | "cafe" | "forest" | "ocean")[]).map((s) => (
           <button
             key={s}
             onClick={() => {
               setSound(s);
-              if (s !== "none") setSoundOn(true);
+              setSoundOn(true);
             }}
             className={cn(
               "px-2.5 py-1 rounded-full text-xs transition",
