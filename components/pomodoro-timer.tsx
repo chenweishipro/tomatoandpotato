@@ -73,23 +73,32 @@ function saveTimerState(s: TimerState | null) {
  * 零网络依赖，永远不会失效
  */
 function createNoiseSource(audioCtx: AudioContext, type: "rain" | "cafe" | "forest" | "ocean") {
-  // 生成 4 秒 buffer（loop）
+  // 每个环境音用不同采样逻辑，4 秒 loop buffer
   const bufferSize = 4 * audioCtx.sampleRate;
   const buffer = audioCtx.createBuffer(2, bufferSize, audioCtx.sampleRate);
+  const sr = audioCtx.sampleRate;
 
   for (let ch = 0; ch < 2; ch++) {
     const data = buffer.getChannelData(ch);
     if (type === "rain") {
-      // 雨声：高频白噪音 + 低频随机 rumble
-      let lastLow = 0;
+      // 雨声: 高频白噪底 + 随机雨点 impulse + 偶尔远雷 rumbling
+      // 先填 white noise
       for (let i = 0; i < bufferSize; i++) {
-        const high = (Math.random() * 2 - 1) * 0.35;
-        const lowTarget = (Math.random() * 2 - 1) * 0.4;
-        lastLow = lastLow * 0.995 + lowTarget * 0.005;
-        data[i] = high + lastLow;
+        data[i] = (Math.random() * 2 - 1) * 0.25;
+      }
+      // 叠加随机雨点 (高幅尖脉冲, 1-2ms 衰减)
+      const dropCount = 400 + Math.floor(Math.random() * 200);
+      for (let d = 0; d < dropCount; d++) {
+        const pos = Math.floor(Math.random() * bufferSize);
+        const amp = 0.3 + Math.random() * 0.4;
+        const decay = 0.0005 + Math.random() * 0.001;
+        for (let k = 0; k < 30; k++) {
+          if (pos + k >= bufferSize) break;
+          data[pos + k] += (Math.random() * 2 - 1) * amp * Math.exp(-k * decay * sr);
+        }
       }
     } else if (type === "cafe") {
-      // 咖啡馆：棕色噪音（更暖）
+      // 咖啡馆: pink noise 暖底噪 + 周期性 "叮" (杯碟) + 模糊人声低频
       let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
       for (let i = 0; i < bufferSize; i++) {
         const white = Math.random() * 2 - 1;
@@ -99,23 +108,59 @@ function createNoiseSource(audioCtx: AudioContext, type: "rain" | "cafe" | "fore
         b3 = 0.86650 * b3 + white * 0.3104856;
         b4 = 0.55000 * b4 + white * 0.5329522;
         b5 = -0.7616 * b5 - white * 0.0168980;
-        data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.09;
+        let v = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.12;
         b6 = white * 0.115926;
+        // 模糊人声频段 200-500Hz 低频 rumble
+        const t = i / sr;
+        v += Math.sin(t * 2 * Math.PI * 300) * 0.015 * Math.sin(t * 0.7);
+        v += Math.sin(t * 2 * Math.PI * 220) * 0.012;
+        data[i] = v;
+      }
+      // 4-6 个 杯碟叮 (1500-3000Hz sine burst, 30-80ms)
+      const dingCount = 4 + Math.floor(Math.random() * 3);
+      for (let d = 0; d < dingCount; d++) {
+        const pos = Math.floor(Math.random() * (bufferSize - sr / 5));
+        const freq = 1500 + Math.random() * 1500;
+        const dur = (sr * (0.03 + Math.random() * 0.05)) | 0;
+        for (let k = 0; k < dur; k++) {
+          const env = Math.exp(-k / (sr * 0.04));
+          data[pos + k] += Math.sin((k / sr) * 2 * Math.PI * freq) * 0.25 * env;
+        }
       }
     } else if (type === "forest") {
-      // 森林：风声（低频调制白噪音）
+      // 森林: brown noise 风声 (低频调制) + 多只鸟叫 (2-4kHz sine chirp, 随机间隔)
       for (let i = 0; i < bufferSize; i++) {
-        const wind = Math.sin((i / audioCtx.sampleRate) * 0.4) * 0.4 + 0.5;
-        data[i] = ((Math.random() * 2 - 1) * 0.25) * wind;
+        const t = i / sr;
+        // 慢风 0.3Hz 调制
+        const wind = 0.5 + 0.5 * Math.sin(t * 2 * Math.PI * 0.3);
+        // 轻随机
+        data[i] = (Math.random() * 2 - 1) * 0.18 * wind;
+      }
+      // 8-12 只鸟叫 (短促 sine chirp 2500-4500Hz, 80-200ms, 带快速 frequency 滑动)
+      const birdCount = 8 + Math.floor(Math.random() * 5);
+      for (let d = 0; d < birdCount; d++) {
+        const pos = Math.floor(Math.random() * (bufferSize - sr / 3));
+        const f0 = 2500 + Math.random() * 2000;
+        const f1 = f0 + (Math.random() - 0.5) * 1500;
+        const dur = (sr * (0.08 + Math.random() * 0.12)) | 0;
+        for (let k = 0; k < dur; k++) {
+          const env = Math.exp(-k / (sr * 0.05));
+          const f = f0 + (f1 - f0) * (k / dur);
+          data[pos + k] += Math.sin((k / sr) * 2 * Math.PI * f) * 0.22 * env;
+        }
       }
     } else { // ocean
-      // 海浪：慢节奏起伏的白噪音
+      // 海浪: 12 秒一个浪的 slow LFO + white noise 调制 + 远处泡沫 (高频)
       for (let i = 0; i < bufferSize; i++) {
-        const t = i / audioCtx.sampleRate;
-        // 8 秒一个浪（约 0.125 Hz）
-        const wave = (Math.sin(t * 0.785) + 1) / 2; // 0-1
-        const intensity = Math.pow(wave, 1.5);
-        data[i] = (Math.random() * 2 - 1) * 0.4 * intensity;
+        const t = i / sr;
+        // 12s 周期 (0.083Hz)
+        const wave = (Math.sin(t * 2 * Math.PI * 0.083) + 1) / 2;
+        // 用 pow 让浪更尖锐 (浪头快起慢落)
+        const intensity = Math.pow(wave, 1.8);
+        let v = (Math.random() * 2 - 1) * 0.4 * intensity;
+        // 远处泡沫高频 (5% 概率)
+        if (Math.random() < 0.005) v += (Math.random() * 2 - 1) * 0.2;
+        data[i] = v;
       }
     }
   }
@@ -124,10 +169,21 @@ function createNoiseSource(audioCtx: AudioContext, type: "rain" | "cafe" | "fore
   source.buffer = buffer;
   source.loop = true;
 
-  // 加一个低通滤波器让声音更柔
+  // 不同声音不同滤波
   const filter = audioCtx.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.value = type === "rain" ? 4000 : type === "ocean" ? 2000 : 1500;
+  if (type === "rain") {
+    filter.type = "highpass";
+    filter.frequency.value = 600;
+  } else if (type === "cafe") {
+    filter.type = "lowpass";
+    filter.frequency.value = 2500;
+  } else if (type === "forest") {
+    filter.type = "lowpass";
+    filter.frequency.value = 5000;
+  } else {
+    filter.type = "lowpass";
+    filter.frequency.value = 1800;
+  }
   filter.Q.value = 0.5;
 
   // gain
