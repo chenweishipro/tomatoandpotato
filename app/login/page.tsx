@@ -96,7 +96,7 @@ export default function LoginPage() {
           </Link>
         </p>
         <p className="text-center text-sm text-gray-500 mt-2">
-          <Link href="/tomato/forgot-password/" className="text-tomato-600 hover:text-tomato-700">
+          <Link href="/forgot-password/" className="text-tomato-600 hover:text-tomato-700">
             忘记密码？
           </Link>
         </p>

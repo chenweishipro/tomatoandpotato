@@ -49,7 +49,7 @@ function ResetPasswordForm() {
       if (res.ok) {
         setDone(true);
         // 2s 后跳 login
-        setTimeout(() => router.push("/tomato/login/"), 2000);
+        setTimeout(() => router.push("/login/"), 2000);
       } else {
         setError(data.error || "重置失败");
       }
@@ -112,7 +112,7 @@ function ResetPasswordForm() {
         </div>
 
         <div className="text-center mt-4">
-          <a href="/tomato/login/" className="text-sm text-tomato-600 hover:underline">
+          <a href="/login/" className="text-sm text-tomato-600 hover:underline">
             ← 返回登录
           </a>
         </div>

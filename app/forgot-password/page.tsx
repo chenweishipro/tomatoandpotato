@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         <div className="text-center mt-4">
-          <a href="/tomato/login/" className="text-sm text-tomato-600 hover:underline">
+          <a href="/login/" className="text-sm text-tomato-600 hover:underline">
             ← 返回登录
           </a>
         </div>
