@@ -95,6 +95,11 @@ export default function LoginPage() {
             立即注册
           </Link>
         </p>
+        <p className="text-center text-sm text-gray-500 mt-2">
+          <Link href="/tomato/forgot-password/" className="text-tomato-600 hover:text-tomato-700">
+            忘记密码？
+          </Link>
+        </p>
       </motion.div>
     </div>
   );

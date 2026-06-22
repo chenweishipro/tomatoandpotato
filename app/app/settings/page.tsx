@@ -59,6 +59,8 @@ export default function SettingsPage() {
         )}
       </div>
 
+      <ChangePasswordSection />
+
       <Section title="🍅 番茄钟时长">
         <NumberRow
           label="专注"
@@ -205,6 +207,98 @@ function ToggleRow({
           className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm"
         />
       </button>
+    </div>
+  );
+}
+
+function ChangePasswordSection() {
+  const [open, setOpen] = useState(false);
+  const [oldP, setOldP] = useState("");
+  const [newP, setNewP] = useState("");
+  const [confirmP, setConfirmP] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setMsg(null);
+    if (newP.length < 6) return setMsg({ type: "err", text: "新密码至少 6 位" });
+    if (newP !== confirmP) return setMsg({ type: "err", text: "两次密码不一致" });
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oldPassword: oldP, newPassword: newP }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMsg({ type: "ok", text: "密码已修改" });
+        setOldP(""); setNewP(""); setConfirmP("");
+        setTimeout(() => { setOpen(false); setMsg(null); }, 1500);
+      } else {
+        setMsg({ type: "err", text: data.error || "修改失败" });
+      }
+    } catch {
+      setMsg({ type: "err", text: "网络错误" });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-gray-900">🔒 账号安全</h2>
+        <button
+          onClick={() => { setOpen(!open); setMsg(null); }}
+          className="text-sm text-tomato-600 hover:text-tomato-700"
+        >
+          {open ? "取消" : "修改密码"}
+        </button>
+      </div>
+      {open && (
+        <form onSubmit={submit} className="mt-4 space-y-3">
+          <input
+            type="password"
+            required
+            placeholder="当前密码"
+            value={oldP}
+            onChange={(e) => setOldP(e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-tomato-400 outline-none text-sm"
+          />
+          <input
+            type="password"
+            required
+            minLength={6}
+            placeholder="新密码（至少 6 位）"
+            value={newP}
+            onChange={(e) => setNewP(e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-tomato-400 outline-none text-sm"
+          />
+          <input
+            type="password"
+            required
+            minLength={6}
+            placeholder="确认新密码"
+            value={confirmP}
+            onChange={(e) => setConfirmP(e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-tomato-400 outline-none text-sm"
+          />
+          {msg && (
+            <p className={"text-sm " + (msg.type === "ok" ? "text-tomato-600" : "text-red-500")}>
+              {msg.text}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2.5 bg-tomato-500 hover:bg-tomato-600 disabled:opacity-60 text-white font-medium rounded-xl text-sm transition"
+          >
+            {loading ? "提交中..." : "确认修改"}
+          </button>
+        </form>
+      )}
     </div>
   );
 }
