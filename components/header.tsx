@@ -51,7 +51,7 @@ export function Header({ user }: { user: { name?: string | null; email?: string 
             {initial}
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: "/tomato/login/" })}
+            onClick={() => signOut({ callbackUrl: "/login/" })}
             className="text-xs text-gray-500 hover:text-gray-900 hidden sm:inline"
           >
             退出
