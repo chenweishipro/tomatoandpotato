@@ -293,61 +293,94 @@ function MonthHeatmap({
 }
 
 /**
- * 年：12 月 × 7 周几 矩阵
- * 横轴 12 个月份，纵轴 7 天，每格是该月-该周几的累计番茄数
- * 紧凑看清：1）哪个月份多 2）一周哪天高/低 3）季节趋势
+ * 年：GitHub 风格 53 周 × 7 天，顶部月份分隔标签
+ * 每个 1 号从当月第一天所在的星期几位置开始（自动对齐）
+ * 总计 365/366 个格子全显示
  */
 function YearHeatmap({ year, days }: { year: number; days: Record<string, number> }) {
-  // 构造 12 × 7 矩阵
-  const matrix: number[][] = Array.from({ length: 12 }, () => Array(7).fill(0));
-  // 每天贡献给该月该周几 (Mon=0, ..., Sun=6)
-  const cellDates: string[][] = Array.from({ length: 12 }, () => Array(7).fill(0).map(() => ""));
-
-  for (let m = 0; m < 12; m++) {
-    const daysInMonth = new Date(year, m + 1, 0).getDate();
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = new Date(year, m, d);
-      const weekday = (date.getDay() + 6) % 7; // Mon=0, ..., Sun=6
-      const key = date.toISOString().slice(0, 10);
-      matrix[m][weekday] += days[key] ?? 0;
-      cellDates[m][weekday] = key; // 最后一个被赋值的为该月-该周几最后一天
-    }
+  // 1. 生成一年所有日期，Mon=0..Sun=6
+  const allDates: { date: Date; key: string; count: number }[] = [];
+  const startDate = new Date(year, 0, 1);
+  const endDate = new Date(year, 11, 31);
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const key = d.toISOString().slice(0, 10);
+    allDates.push({ date: new Date(d), key, count: days[key] ?? 0 });
   }
 
-  // 年内最大 count
-  const yearMax = matrix.flat().reduce((m, n) => Math.max(m, n), 0);
+  // 2. 按周分块: 每周一作为新列起点 (如果 1/1 是周三，则第 1 周有 Wed/Thu/Fri/Sat/Sun 5 格，前面 3 格空)
+  const firstDay = startDate.getDay();
+  const firstDayIdx = (firstDay + 6) % 7; // Mon=0
+  const padded: ({ date: Date; key: string; count: number } | null)[] = [
+    ...Array(firstDayIdx).fill(null),
+    ...allDates,
+  ];
+  // 补齐末尾到 7 的倍数
+  while (padded.length % 7 !== 0) padded.push(null);
+
+  const weeks: (typeof padded)[] = [];
+  for (let i = 0; i < padded.length; i += 7) weeks.push(padded.slice(i, i + 7));
+
+  // 3. 顶部月份标签: 每月的 1 号所在周上方显示该月名
+  // 完整计算: 月份标签位于该月 1 号所在周的起始位置
+  // (如果要省略月份, 设置 labelWeek=该月第一天所在周)
+  const monthLabelWeeks: { label: string; weekIdx: number }[] = [];
+  let lastMonth = -1;
+  weeks.forEach((week, wi) => {
+    for (const cell of week) {
+      if (!cell) continue;
+      const m = cell.date.getMonth();
+      if (m !== lastMonth) {
+        // 第一次出现该月的位置
+        monthLabelWeeks.push({ label: MONTH_LABELS_EN[m], weekIdx: wi });
+        lastMonth = m;
+        break;
+      }
+    }
+  });
+
+  const yearMax = allDates.reduce((m, c) => Math.max(m, c.count), 0);
 
   return (
     <div className="overflow-x-auto -mx-2 px-2 pb-1">
       <div className="w-fit mx-auto sm:mx-0">
-        {/* 月份横轴 */}
-        <div className="grid grid-cols-12 gap-1 mb-2">
-          {MONTH_NAMES.map((m) => (
-            <div key={m} className="text-center text-[10px] text-gray-400 font-medium">
-              {m}
-            </div>
-          ))}
-        </div>
-        {/* 7 行（周一到周日）× 12 列 */}
-        <div className="grid grid-cols-1 gap-1">
-          {WEEKDAY_LABELS.map((w, wi) => (
-            <div key={w} className="grid grid-cols-[3.5rem_1fr] items-center gap-2">
-              <div className="text-[10px] text-gray-400 font-medium text-right">{w}</div>
-              <div className="grid grid-cols-12 gap-1">
-                {matrix.map((row, mi) => (
-                  <motion.div
-                    key={mi}
-                    initial={{ scale: 0.6, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: (wi * 12 + mi) * 0.003 }}
-                    className={
-                      "h-7 sm:h-8 rounded-sm cursor-pointer transition hover:ring-2 hover:ring-tomato-400 " +
-                      cellColor(row[wi], yearMax)
-                    }
-                    title={`${year}年 ${mi + 1}月 ${w} — 累计 ${row[wi]} 🍅`}
-                  />
-                ))}
+        {/* 顶部月份标签行 — 每个标签在月份 1 号所在周上方 */}
+        <div className="flex gap-0.5 pl-0 mb-1">
+          {weeks.map((_, wi) => {
+            const lbl = monthLabelWeeks.find((m) => m.weekIdx === wi);
+            return (
+              <div key={wi} className="w-3.5 text-[9px] text-gray-400 font-medium leading-none">
+                {lbl ? lbl.label : ""}
               </div>
+            );
+          })}
+        </div>
+        {/* 7 行 × N 周 */}
+        <div className="flex gap-0.5">
+          {weeks.map((week, wi) => (
+            <div key={wi} className="flex flex-col gap-0.5">
+              {week.map((cell, ci) => {
+                if (!cell) {
+                  return <div key={ci} className="w-3.5 h-3.5" />;
+                }
+                const m = cell.date.getMonth();
+                const d = cell.date.getDate();
+                // 每月 1 号描边强调
+                const isFirstOfMonth = d === 1;
+                return (
+                  <motion.div
+                    key={cell.key}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: (wi * 7 + ci) * 0.001 }}
+                    className={
+                      "w-3.5 h-3.5 rounded-[2px] cursor-pointer transition hover:ring-1 hover:ring-tomato-400 " +
+                      cellColor(cell.count, yearMax) +
+                      (isFirstOfMonth ? " ring-1 ring-gray-400" : "")
+                    }
+                    title={`${cell.key} - ${cell.count} 🍅${isFirstOfMonth ? ` (${MONTH_NAMES[m]} 1 号)` : ""}`}
+                  />
+                );
+              })}
             </div>
           ))}
         </div>
