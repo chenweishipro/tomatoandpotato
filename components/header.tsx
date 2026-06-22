@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { BarChart3, Settings, Timer, History } from "lucide-react";
+import { BarChart3, Settings, Timer, History, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -48,7 +48,7 @@ export function Header({ user }: { user: { name?: string | null; email?: string 
         </nav>
 
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-tomato-400 to-tomato-600 text-white text-sm font-medium flex items-center justify-center">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-tomato-400 to-tomato-600 text-white text-sm font-medium flex items-center justify-center">
             {initial}
           </div>
           <button
@@ -57,9 +57,11 @@ export function Header({ user }: { user: { name?: string | null; email?: string 
               await signOut({ redirect: false });
               router.push("/login/");
             }}
-            className="text-xs text-gray-500 hover:text-gray-900 hidden sm:inline"
+            className="text-xs text-gray-500 hover:text-gray-900 flex items-center gap-1 px-1.5 py-1 sm:px-0 sm:py-0"
+            aria-label="登出"
           >
-            退出
+            <LogOut size={14} />
+            <span className="hidden sm:inline">退出</span>
           </button>
         </div>
       </div>
