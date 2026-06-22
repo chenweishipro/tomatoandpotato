@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { BarChart3, Settings, Timer, History } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ const links = [
 
 export function Header({ user }: { user: { name?: string | null; email?: string | null } }) {
   const pathname = usePathname();
+  const router = useRouter();
   const initial = (user.name ?? user.email ?? "?")[0]!.toUpperCase();
 
   return (
@@ -51,7 +52,11 @@ export function Header({ user }: { user: { name?: string | null; email?: string 
             {initial}
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: "/login/" })}
+            onClick={async () => {
+              // signOut 内部 callbackUrl 不会自动加 basePath, 手动 redirect
+              await signOut({ redirect: false });
+              router.push("/login/");
+            }}
             className="text-xs text-gray-500 hover:text-gray-900 hidden sm:inline"
           >
             退出
