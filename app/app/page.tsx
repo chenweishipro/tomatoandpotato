@@ -39,15 +39,41 @@ export default function AppPage() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
-      const settingsRes = await apiFetch("/api/settings");
-      if (settingsRes.ok) {
-        const s = await settingsRes.json();
-        setSettings(s);
+      // 5s 超时 fallback: 即使 fetch 挂住, 也别永远"加载中"
+      const timer = setTimeout(() => {
+        if (!cancelled) {
+          setSettings({
+            focusMinutes: 25,
+            shortBreakMin: 5,
+            longBreakMin: 15,
+            pomosBeforeLong: 4,
+            autoStartBreak: true,
+            soundEnabled: true,
+          });
+          setLoading(false);
+        }
+      }, 5000);
+
+      try {
+        const settingsRes = await apiFetch("/api/settings");
+        if (cancelled) return;
+        if (settingsRes.ok) {
+          const s = await settingsRes.json();
+          setSettings(s);
+        }
+        await Promise.all([loadTodos(), loadStats()]);
+      } catch {
+        // 忽略: timer 会兜底
+      } finally {
+        if (!cancelled) {
+          clearTimeout(timer);
+          setLoading(false);
+        }
       }
-      await Promise.all([loadTodos(), loadStats()]);
-      setLoading(false);
     })();
+    return () => { cancelled = true; };
   }, [loadTodos, loadStats]);
 
   // 持久化 activeTodoId
