@@ -19,17 +19,21 @@ const MONTH_NAMES = [
 // 年热力图顶部月份标签（英文 3 字符，GitHub 原生风格）
 const MONTH_LABELS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 /**
- * GitHub 风格热力图配色（统一 5 档，相对归一化）
- * 用 max 归一化避免数据稀疏时断层（0/125 直接到最深色没过渡）
- * max=0 时退化到绝对分档（默认浅绿 1 = 最小）
+ * 番茄数 → 明暗色阶
+ * 6 档从浅到深：gray(0) → tomato-100 → 200 → 300 → 400 → 500 → 600
+ * 用 log scale 避免"就一个番茄"直接跳最深色，1 番茄、2 番茄、3+ 都有明显明暗区分
+ * max=0 退化到全 0（不会触发）
  */
 function cellColor(c: number, max: number): string {
   if (c === 0) return "bg-gray-100";
-  if (max === 0) return "bg-tomato-200";
-  const ratio = c / max;
-  if (ratio < 0.25) return "bg-tomato-200";
-  if (ratio < 0.5)  return "bg-tomato-400";
-  if (ratio < 0.75) return "bg-tomato-500";
+  if (max <= 1) return "bg-tomato-200";  // 只有 1 个有数据时，直接浅红
+  // log scale: ratio = log(c+1) / log(max+1), 均匀分布到 0-1
+  const ratio = Math.log(c + 1) / Math.log(max + 1);
+  if (ratio < 0.2)  return "bg-tomato-100";
+  if (ratio < 0.4)  return "bg-tomato-200";
+  if (ratio < 0.6)  return "bg-tomato-300";
+  if (ratio < 0.8)  return "bg-tomato-400";
+  if (ratio < 0.95) return "bg-tomato-500";
   return "bg-tomato-600";
 }
 
