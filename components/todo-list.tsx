@@ -280,7 +280,7 @@ function TodoCard({
           className={cn(
             "shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition",
             isDone
-              ? "bg-leaf-500 border-leaf-500 text-white"
+              ? "bg-tomato-500 border-tomato-500 text-white"
               : "border-gray-300 hover:border-tomato-400"
           )}
           aria-label="完成"

@@ -52,7 +52,7 @@ export default function SettingsPage() {
           <motion.span
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-sm text-leaf-600"
+            className="text-sm text-tomato-600"
           >
             ✓ 已保存
           </motion.span>

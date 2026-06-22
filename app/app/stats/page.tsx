@@ -25,12 +25,12 @@ const MONTH_LABELS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
  */
 function cellColor(c: number, max: number): string {
   if (c === 0) return "bg-gray-100";
-  if (max === 0) return "bg-leaf-200";
+  if (max === 0) return "bg-tomato-200";
   const ratio = c / max;
-  if (ratio < 0.25) return "bg-leaf-200";
-  if (ratio < 0.5)  return "bg-leaf-400";
-  if (ratio < 0.75) return "bg-leaf-500";
-  return "bg-leaf-600";
+  if (ratio < 0.25) return "bg-tomato-200";
+  if (ratio < 0.5)  return "bg-tomato-400";
+  if (ratio < 0.75) return "bg-tomato-500";
+  return "bg-tomato-600";
 }
 
 export default function StatsPage() {
@@ -199,7 +199,7 @@ function WeekHeatmap({ week }: { week: Week[] }) {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: i * 0.02 }}
                 className={
-                  "w-9 h-9 sm:w-10 sm:h-10 rounded-md transition cursor-pointer hover:ring-2 hover:ring-leaf-400 " +
+                  "w-9 h-9 sm:w-10 sm:h-10 rounded-md transition cursor-pointer hover:ring-2 hover:ring-tomato-400 " +
                   cellColor(count, weekMax) +
                   (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white" : "")
                 }
@@ -270,7 +270,7 @@ function MonthHeatmap({
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: i * 0.003 }}
                 className={
-                  "w-9 h-9 sm:w-10 sm:h-10 rounded-sm transition cursor-pointer hover:ring-2 hover:ring-leaf-400 relative group " +
+                  "w-9 h-9 sm:w-10 sm:h-10 rounded-sm transition cursor-pointer hover:ring-2 hover:ring-tomato-400 relative group " +
                   cellColor(cell.count, monthMax) +
                   (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white" : "")
                 }
@@ -337,7 +337,7 @@ function YearHeatmap({ year, days }: { year: number; days: Record<string, number
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: (wi * 12 + mi) * 0.003 }}
                     className={
-                      "h-7 sm:h-8 rounded-sm cursor-pointer transition hover:ring-2 hover:ring-leaf-400 " +
+                      "h-7 sm:h-8 rounded-sm cursor-pointer transition hover:ring-2 hover:ring-tomato-400 " +
                       cellColor(row[wi], yearMax)
                     }
                     title={`${year}年 ${mi + 1}月 ${w} — 累计 ${row[wi]} 🍅`}
@@ -360,10 +360,10 @@ function Legend() {
     <div className="flex items-center justify-end gap-2 text-xs text-gray-500 px-1">
       <span>少</span>
       <div className="w-3 h-3 rounded-sm bg-gray-100" />
-      <div className="w-3 h-3 rounded-sm bg-leaf-200" />
-      <div className="w-3 h-3 rounded-sm bg-leaf-400" />
-      <div className="w-3 h-3 rounded-sm bg-leaf-500" />
-      <div className="w-3 h-3 rounded-sm bg-leaf-600" />
+      <div className="w-3 h-3 rounded-sm bg-tomato-200" />
+      <div className="w-3 h-3 rounded-sm bg-tomato-400" />
+      <div className="w-3 h-3 rounded-sm bg-tomato-500" />
+      <div className="w-3 h-3 rounded-sm bg-tomato-600" />
       <span>多</span>
     </div>
   );

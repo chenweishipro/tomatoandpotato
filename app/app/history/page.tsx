@@ -89,7 +89,7 @@ export default function HistoryPage() {
                   it.type === "focus"
                     ? "text-tomato-500"
                     : it.type === "short_break"
-                    ? "text-leaf-500"
+                    ? "text-tomato-500"
                     : "text-sky-500";
                 return (
                   <div

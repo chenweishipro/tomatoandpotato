@@ -553,7 +553,7 @@ export function PomodoroTimer({
     phase === "focus"
       ? "text-tomato-600"
       : phase === "short_break"
-      ? "text-leaf-500"
+      ? "text-tomato-500"
       : "text-sky-500";
 
   return (
@@ -562,7 +562,7 @@ export function PomodoroTimer({
       <div className="flex justify-center mb-4">
         <div className={cn(
           "px-4 py-1.5 text-sm font-medium rounded-full",
-          phase === "focus" ? "bg-tomato-50 text-tomato-600" : "bg-leaf-50 text-leaf-600"
+          phase === "focus" ? "bg-tomato-50 text-tomato-600" : "bg-tomato-50 text-tomato-600"
         )}>
           {phase === "focus" ? "🍅 专注时间" : phase === "short_break" ? "☕ 短休息" : "🌿 长休息"}
         </div>
@@ -623,7 +623,7 @@ export function PomodoroTimer({
                 className="text-center"
               >
                 <div className="text-6xl mb-2">🎉</div>
-                <p className="text-lg font-medium text-leaf-600">完成！</p>
+                <p className="text-lg font-medium text-tomato-600">完成！</p>
               </motion.div>
             ) : (
               <motion.div
