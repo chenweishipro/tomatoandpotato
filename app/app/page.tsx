@@ -88,6 +88,30 @@ export default function AppPage() {
     else localStorage.removeItem("activeTodoId");
   }, [activeTodoId]);
 
+  // 快捷键: Space/R/1/2/3/4/Esc
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    function onKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement)?.tagName;
+      // 在 input/textarea/contenteditable 里不拦截, 避免干扰用户输入
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
+      if (e.code === "Space") {
+        e.preventDefault();
+        // 通过自定义事件传递给 pomodoro-timer (组件内部有 running/paused 状态)
+        window.dispatchEvent(new CustomEvent("tomato:toggle"));
+      } else if (e.key === "r" || e.key === "R") {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent("tomato:reset"));
+      } else if (e.key === "1") setMobileTab("timer");
+      else if (e.key === "2") setMobileTab("todos");
+      else if (e.key === "3") window.location.href = "/app/stats";
+      else if (e.key === "4") window.location.href = "/app/history";
+      else if (e.key === "Escape") window.dispatchEvent(new CustomEvent("tomato:abandon"));
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   if (loading || !settings) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-400">

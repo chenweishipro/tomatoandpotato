@@ -327,8 +327,48 @@ export function PomodoroTimer({
     return () => {
       if (tickRef.current) clearInterval(tickRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running]);
+  }, [running, hydrated, handleComplete]);
+
+  // 快捷键: Space=toggle, R=reset, Esc=abandon
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onToggle = () => {
+      if (!hydrated) return;
+      if (running) {
+        setRunning(false);
+      } else {
+        // 继续: 如果剩余 0 或已完成, 重置 remaining + session total
+        if (remaining <= 0 || completedThisSession) {
+          const newTotal = totalSeconds();
+          setRemaining(newTotal);
+          setSessionStartedTotal(newTotal);
+          setCompletedThisSession(false);
+        }
+        setRunning(true);
+      }
+    };
+    const onReset = () => {
+      if (!hydrated) return;
+      const newTotal = totalSeconds();
+      setRunning(false);
+      setRemaining(newTotal);
+      setSessionStartedTotal(newTotal);
+      setCompletedThisSession(false);
+    };
+    const onAbandon = () => {
+      if (!hydrated) return;
+      handleAbandon();
+    };
+    window.addEventListener("tomato:toggle", onToggle);
+    window.addEventListener("tomato:reset", onReset);
+    window.addEventListener("tomato:abandon", onAbandon);
+    return () => {
+      window.removeEventListener("tomato:toggle", onToggle);
+      window.removeEventListener("tomato:reset", onReset);
+      window.removeEventListener("tomato:abandon", onAbandon);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, running, remaining, completedThisSession, totalSeconds]);
 
   // 通知
   function notify(title: string, body: string) {
