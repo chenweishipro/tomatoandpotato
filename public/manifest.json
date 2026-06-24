@@ -1,0 +1,29 @@
+{
+  "name": "番茄土豆",
+  "short_name": "番茄土豆",
+  "description": "极简好用的番茄工作法 + Todo",
+  "start_url": "/tomato/app/",
+  "scope": "/tomato/",
+  "display": "standalone",
+  "background_color": "#fff1f0",
+  "theme_color": "#fa472f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/tomato/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/tomato/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/tomato/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
