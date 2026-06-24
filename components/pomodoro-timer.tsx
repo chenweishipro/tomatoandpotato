@@ -334,7 +334,9 @@ export function PomodoroTimer({
   function notify(title: string, body: string) {
     if (typeof window === "undefined" || !("Notification" in window)) return;
     if (Notification.permission === "granted") {
-      new Notification(title, { body, icon: "🍅" });
+      try {
+        new Notification(title, { body, icon: "🍅", badge: "🍅" });
+      } catch {}
     }
   }
 
@@ -384,17 +386,26 @@ export function PomodoroTimer({
   function playChime() {
     try {
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.connect(g);
-      g.connect(audioCtx.destination);
-      o.frequency.value = 880;
-      o.type = "sine";
-      g.gain.setValueAtTime(0, audioCtx.currentTime);
-      g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
-      o.start();
-      o.stop(audioCtx.currentTime + 0.6);
+      // 三和弦提示音: C5 (523Hz) → E5 (659Hz) → G5 (784Hz), 每个 200ms, 总 0.8s
+      const notes = [
+        { freq: 523.25, delay: 0.00, dur: 0.30 },
+        { freq: 659.25, delay: 0.18, dur: 0.30 },
+        { freq: 783.99, delay: 0.36, dur: 0.60 },
+      ];
+      for (const n of notes) {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.type = "sine";
+        o.frequency.value = n.freq;
+        const t0 = audioCtx.currentTime + n.delay;
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(0.35, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t0 + n.dur);
+        o.start(t0);
+        o.stop(t0 + n.dur);
+      }
     } catch {}
   }
 

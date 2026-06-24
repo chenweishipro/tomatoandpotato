@@ -117,7 +117,76 @@ export default function SettingsPage() {
           checked={settings.soundEnabled}
           onChange={(v) => save({ soundEnabled: v })}
         />
+        <TestButtons
+          desktopNotif={settings.desktopNotif}
+          soundEnabled={settings.soundEnabled}
+        />
       </Section>
+    </div>
+  );
+}
+
+function TestButtons({ desktopNotif, soundEnabled }: { desktopNotif: boolean; soundEnabled: boolean }) {
+  const [notifPerm, setNotifPerm] = useState<NotificationPermission | "unsupported">("default");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setNotifPerm(Notification.permission);
+    } else {
+      setNotifPerm("unsupported");
+    }
+  }, []);
+
+  async function requestNotif() {
+    if (!("Notification" in window)) return;
+    const perm = await Notification.requestPermission();
+    setNotifPerm(perm);
+    if (perm === "granted") {
+      new Notification("🍅 番茄土豆", { body: "通知已开启！番茄完成时会提醒你。", icon: "🍅" });
+    }
+  }
+
+  function playTestChime() {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const notes = [
+        { freq: 523.25, delay: 0, dur: 0.3 },
+        { freq: 659.25, delay: 0.18, dur: 0.3 },
+        { freq: 783.99, delay: 0.36, dur: 0.6 },
+      ];
+      for (const n of notes) {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.type = "sine";
+        o.frequency.value = n.freq;
+        const t0 = audioCtx.currentTime + n.delay;
+        g.gain.setValueAtTime(0, t0);
+        g.gain.linearRampToValueAtTime(0.35, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, t0 + n.dur);
+        o.start(t0);
+        o.stop(t0 + n.dur);
+      }
+    } catch {}
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100 mt-3">
+      <button
+        onClick={playTestChime}
+        disabled={!soundEnabled}
+        className="px-3 py-1.5 text-xs rounded-lg bg-tomato-50 text-tomato-700 hover:bg-tomato-100 disabled:opacity-40"
+      >
+        🔔 试听提示音
+      </button>
+      <button
+        onClick={requestNotif}
+        disabled={!desktopNotif || notifPerm === "unsupported"}
+        className="px-3 py-1.5 text-xs rounded-lg bg-tomato-50 text-tomato-700 hover:bg-tomato-100 disabled:opacity-40"
+      >
+        🔔 开启桌面通知 {notifPerm === "granted" ? "✓" : notifPerm === "denied" ? "✗" : ""}
+      </button>
     </div>
   );
 }
