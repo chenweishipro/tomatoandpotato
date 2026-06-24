@@ -1,4 +1,5 @@
 "use client";
+import { useT } from "@/lib/i18n";
 import { apiFetch } from "@/lib/api-client";
 
 import { useState } from "react";
@@ -8,6 +9,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function RegisterPage() {
+  const { t } = useT();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -57,7 +59,7 @@ export default function RegisterPage() {
           className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4"
         >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">昵称</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("auth.name")}</label>
             <input
               type="text"
               value={name}
@@ -69,7 +71,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">邮箱</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("auth.email")}</label>
             <input
               type="email"
               value={email}
@@ -81,7 +83,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">密码</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("auth.password")}</label>
             <input
               type="password"
               value={password}

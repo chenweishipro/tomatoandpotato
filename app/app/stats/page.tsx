@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { startOfDay } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
+import { useT } from "@/lib/i18n";
 
 type Week = { date: string; count: number; minutes: number };
 type Month = { year: number; month: number; days: Record<string, number> };
@@ -38,6 +39,7 @@ function cellColor(c: number, max: number): string {
 }
 
 export default function StatsPage() {
+  const { t } = useT();
   const [today, setToday] = useState<{ focusCount: number; focusMinutes: number; todosDone: number } | null>(null);
   const [week, setWeek] = useState<Week[]>([]);
   const [month, setMonth] = useState<Month | null>(null);
@@ -80,7 +82,7 @@ export default function StatsPage() {
     setViewYear(y);
   }
 
-  if (loading) return <div className="text-center text-gray-400 py-20">加载中…</div>;
+  if (loading) return <div className="text-center text-gray-400 py-20">{t("common.loading")}</div>;
 
   const weekTotal = week.reduce((s, d) => s + d.count, 0);
   const weekMinutes = week.reduce((s, d) => s + d.minutes, 0);
@@ -92,15 +94,15 @@ export default function StatsPage() {
     <div className="space-y-5">
       {/* 4 卡片 */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="今日番茄" value={String(today?.focusCount ?? 0)} suffix="🍅" />
-        <StatCard label="今日专注" value={String(today?.focusMinutes ?? 0)} suffix="分钟" />
-        <StatCard label="本周番茄" value={String(weekTotal)} suffix="🍅" />
-        <StatCard label="本月番茄" value={String(monthTotal)} suffix="🍅" />
+        <StatCard label={t("stats.today")} value={String(today?.focusCount ?? 0)} suffix="🍅" />
+        <StatCard label={t("stats.todayFocus")} value={String(today?.focusMinutes ?? 0)} suffix={t("settings.minutes")} />
+        <StatCard label={t("stats.weekTotal")} value={String(weekTotal)} suffix="🍅" />
+        <StatCard label={t("stats.monthTotal")} value={String(monthTotal)} suffix="🍅" />
       </div>
 
       {/* 周 */}
       <HeatmapSection
-        title="📅 本周"
+        title={`📅 ${t("stats.week")}`}
         rightSlot={<span className="text-xs text-gray-500">共 {weekTotal} 🍅 · {weekMinutes} 分钟</span>}
       >
         <WeekHeatmap week={week} />
@@ -108,7 +110,7 @@ export default function StatsPage() {
 
       {/* 月 */}
       <HeatmapSection
-        title="🗓️ 本月"
+        title={`🗓️ ${t("stats.month")}`}
         rightSlot={
           <div className="flex items-center gap-2">
             <button
@@ -136,7 +138,7 @@ export default function StatsPage() {
 
       {/* 年 */}
       <HeatmapSection
-        title="🌳 全年"
+        title={`🌳 ${t("stats.year")}`}
         rightSlot={<span className="text-xs text-gray-500">共 {yearTotal} 🍅</span>}
       >
         <YearHeatmap year={heatmap?.year ?? viewYear} days={heatmap?.days ?? {}} />
@@ -393,15 +395,16 @@ function YearHeatmap({ year, days }: { year: number; days: Record<string, number
  * 公共图例
  */
 function Legend() {
+  const { t } = useT();
   return (
     <div className="flex items-center justify-end gap-2 text-xs text-gray-500 px-1">
-      <span>少</span>
+      <span>{t("stats.less")}</span>
       <div className="w-3 h-3 rounded-sm bg-gray-100" />
       <div className="w-3 h-3 rounded-sm bg-tomato-200" />
       <div className="w-3 h-3 rounded-sm bg-tomato-400" />
       <div className="w-3 h-3 rounded-sm bg-tomato-500" />
       <div className="w-3 h-3 rounded-sm bg-tomato-600" />
-      <span>多</span>
+      <span>{t("stats.more")}</span>
     </div>
   );
 }

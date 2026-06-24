@@ -1,4 +1,5 @@
 "use client";
+import { useT } from "@/lib/i18n";
 import { apiFetch } from "@/lib/api-client";
 
 import { useEffect, useState } from "react";
@@ -16,6 +17,7 @@ type Settings = {
 };
 
 export default function SettingsPage() {
+  const { t } = useT();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -176,6 +178,7 @@ export default function SettingsPage() {
 
 function TestButtons({ desktopNotif, soundEnabled }: { desktopNotif: boolean; soundEnabled: boolean }) {
   const [notifPerm, setNotifPerm] = useState<NotificationPermission | "unsupported">("default");
+  const { t } = useT();
 
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
@@ -329,6 +332,7 @@ function ToggleRow({
 }
 
 function ChangePasswordSection() {
+  const { t } = useT();
   const [open, setOpen] = useState(false);
   const [oldP, setOldP] = useState("");
   const [newP, setNewP] = useState("");
@@ -366,7 +370,7 @@ function ChangePasswordSection() {
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">🔒 账号安全</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t("settings.security")}</h2>
         <button
           onClick={() => { setOpen(!open); setMsg(null); }}
           className="text-sm text-tomato-600 hover:text-tomato-700"

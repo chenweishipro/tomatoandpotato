@@ -1,4 +1,5 @@
 "use client";
+import { useT } from "@/lib/i18n";
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
@@ -7,6 +8,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function LoginPage() {
+  const { t } = useT();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,7 +51,7 @@ export default function LoginPage() {
           className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4"
         >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">邮箱</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("auth.email")}</label>
             <input
               type="email"
               value={email}
@@ -61,7 +63,7 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">密码</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">{t("auth.password")}</label>
             <input
               type="password"
               value={password}
@@ -97,7 +99,7 @@ export default function LoginPage() {
         </p>
         <p className="text-center text-sm text-gray-500 mt-2">
           <Link href="/forgot-password/" className="text-tomato-600 hover:text-tomato-700">
-            忘记密码？
+            {t("auth.forgotPassword")}
           </Link>
         </p>
       </motion.div>
