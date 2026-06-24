@@ -1,7 +1,12 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <SessionProvider basePath="/tomato/api/auth">{children}</SessionProvider>;
+  return (
+    <SessionProvider basePath="/tomato/api/auth">
+      <ThemeProvider>{children}</ThemeProvider>
+    </SessionProvider>
+  );
 }

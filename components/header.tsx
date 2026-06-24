@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { BarChart3, Settings, Timer, History, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-provider";
 
 const links = [
   { href: "/app", label: "专注", icon: Timer },
@@ -19,9 +20,9 @@ export function Header({ user }: { user: { name?: string | null; email?: string 
   const initial = (user.name ?? user.email ?? "?")[0]!.toUpperCase();
 
   return (
-    <header className="sticky top-0 z-30 bg-white/70 backdrop-blur-md border-b border-gray-100">
+    <header className="sticky top-0 z-30 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border-b border-gray-100 dark:border-slate-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
-        <Link href="/app" className="flex items-center gap-2 font-semibold text-gray-900">
+        <Link href="/app" className="flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100">
           <span className="text-xl">🍅</span>
           <span className="hidden sm:inline">番茄土豆</span>
         </Link>
@@ -36,8 +37,8 @@ export function Header({ user }: { user: { name?: string | null; email?: string 
                 className={cn(
                   "flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-sm transition",
                   active
-                    ? "bg-tomato-50 text-tomato-700"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                    ? "bg-tomato-50 text-tomato-700 dark:bg-tomato-900/30 dark:text-tomato-300"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-gray-100"
                 )}
               >
                 <Icon size={16} />
@@ -48,6 +49,7 @@ export function Header({ user }: { user: { name?: string | null; email?: string 
         </nav>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-tomato-400 to-tomato-600 text-white text-sm font-medium flex items-center justify-center">
             {initial}
           </div>
@@ -57,7 +59,7 @@ export function Header({ user }: { user: { name?: string | null; email?: string 
               await signOut({ redirect: false });
               router.push("/login/");
             }}
-            className="text-xs text-gray-500 hover:text-gray-900 flex items-center gap-1 px-1.5 py-1 sm:px-0 sm:py-0"
+            className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 flex items-center gap-1 px-1.5 py-1 sm:px-0 sm:py-0"
             aria-label="登出"
           >
             <LogOut size={14} />
