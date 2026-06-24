@@ -61,57 +61,8 @@ export default function SettingsPage() {
         )}
       </div>
 
-      <ChangePasswordSection />
-
-      <Section title="📦 数据导出">
-        <div className="flex flex-wrap gap-2">
-          <a
-            href="/api/export?format=json"
-            className="px-3 py-1.5 text-sm rounded-lg bg-tomato-500 text-white hover:bg-tomato-600"
-          >
-            ⬇️ 导出 JSON
-          </a>
-          <a
-            href="/api/export?format=csv"
-            className="px-3 py-1.5 text-sm rounded-lg bg-tomato-100 text-tomato-700 hover:bg-tomato-200"
-          >
-            ⬇️ 导出 CSV
-          </a>
-        </div>
-        <p className="text-xs text-gray-500 mt-2">
-          JSON 含用户/设置/所有任务/所有番茄记录; CSV 分两段表 (Todos + Pomodoros)。
-        </p>
-      </Section>
-
-      <Section title="⌨️ 快捷键">
-        <div className="text-sm text-gray-600 space-y-2">
-          <div className="flex justify-between items-center">
-            <span>开始 / 暂停番茄</span>
-            <kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">Space</kbd>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>重置当前计时器</span>
-            <kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">R</kbd>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>放弃番茄 / 跳过休息</span>
-            <kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">Esc</kbd>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>切换移动端番茄 / 任务</span>
-            <span className="text-xs"><kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">1</kbd> <kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">2</kbd></span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span>跳到统计 / 历史</span>
-            <span className="text-xs"><kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">3</kbd> <kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">4</kbd></span>
-          </div>
-          <p className="text-xs text-gray-400 pt-2 border-t border-gray-100">
-            💡 在输入框中按快捷键不会触发, 避免干扰输入。
-          </p>
-        </div>
-      </Section>
-
-      <Section title="🍅 番茄钟时长">
+                                  {/* sections */}
+<Section title="🍅 番茄钟时长">
         <NumberRow
           label="专注"
           suffix="分钟"
@@ -148,7 +99,8 @@ export default function SettingsPage() {
         />
       </Section>
 
-      <Section title="⚙️ 行为">
+
+<Section title="⚙️ 行为">
         <ToggleRow
           label="自动开始休息"
           desc="番茄完成后，自动开始倒计时休息"
@@ -172,7 +124,61 @@ export default function SettingsPage() {
           soundEnabled={settings.soundEnabled}
         />
       </Section>
-    </div>
+
+<Section title="📦 数据导出">
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="/tomato/api/export?format=json"
+            className="px-3 py-1.5 text-sm rounded-lg bg-tomato-500 text-white hover:bg-tomato-600"
+          >
+            ⬇️ 导出 JSON
+          </a>
+          <a
+            href="/tomato/api/export?format=csv"
+            className="px-3 py-1.5 text-sm rounded-lg bg-tomato-100 text-tomato-700 hover:bg-tomato-200"
+          >
+            ⬇️ 导出 CSV
+          </a>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          JSON 含用户/设置/所有任务/所有番茄记录; CSV 分两段表 (Todos + Pomodoros)。
+        </p>
+      </Section>
+
+
+<Section title="⌨️ 快捷键">
+        <div className="text-sm text-gray-600 space-y-2">
+          <div className="flex justify-between items-center">
+            <span>开始 / 暂停番茄</span>
+            <kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">Space</kbd>
+          </div>
+          <div className="flex justify-between items-center">
+            <span>重置当前计时器</span>
+            <kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">R</kbd>
+          </div>
+          <div className="flex justify-between items-center">
+            <span>放弃番茄 / 跳过休息</span>
+            <kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">Esc</kbd>
+          </div>
+          <div className="flex justify-between items-center">
+            <span>切换移动端番茄 / 任务</span>
+            <span className="text-xs"><kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">1</kbd> <kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">2</kbd></span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span>跳到统计 / 历史</span>
+            <span className="text-xs"><kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">3</kbd> <kbd className="px-2 py-0.5 text-xs rounded bg-gray-100 border border-gray-200 font-mono">4</kbd></span>
+          </div>
+          <p className="text-xs text-gray-400 pt-2 border-t border-gray-100">
+            💡 在输入框中按快捷键不会触发, 避免干扰输入。
+          </p>
+        </div>
+      </Section>
+
+
+<ChangePasswordSection />
+
+
+</div>
   );
 }
 
