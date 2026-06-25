@@ -4,7 +4,7 @@
  * 配置 (环境变量):
  * - WECHAT_APP_ID
  * - WECHAT_APP_SECRET
- * - WECHAT_REDIRECT_URI (默认 http://host/tomato/api/auth/wechat/callback)
+ * - WECHAT_REDIRECT_URI (默认 http://host/tomato/api/wechat/callback)
  *
  * 申请: https://open.weixin.qq.com → 网站应用 → 创建应用 (需企业资质)
  * 文档: https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html
@@ -39,7 +39,7 @@ export function buildWechatQrUrl(redirectUri: string, state: string): string {
       state,
       redirect_uri: redirectUri,
     });
-    return `/tomato/api/auth/wechat/dev-qr?${params.toString()}`;
+    return `/tomato/api/wechat/dev-qr?${params.toString()}`;
   }
   const params = new URLSearchParams({
     appid: WECHAT_APP_ID,

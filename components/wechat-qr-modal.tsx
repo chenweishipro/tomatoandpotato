@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
 
 export function WechatQrModal({
   open,
@@ -25,7 +26,7 @@ export function WechatQrModal({
     setLoading(true);
     setError(null);
     const endpoint = intent === "bind" ? "/api/wechat/bind" : "/api/wechat/qrcode";
-    fetch(endpoint)
+    apiFetch(endpoint)
       .then((r) => r.json())
       .then((d) => {
         setQrUrl(d.url || "");
