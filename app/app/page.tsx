@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import { PomodoroTimer } from "@/components/pomodoro-timer";
 import { TodoList, type Todo } from "@/components/todo-list";
 import { apiFetch } from "@/lib/api-client";
@@ -19,6 +20,8 @@ export default function AppPage() {
   const [activeTodoId, setActiveTodoId] = useState<string | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [focusCount, setFocusCount] = useState(0);
+  const [todayCount, setTodayCount] = useState(0);
+  const [todayMinutes, setTodayMinutes] = useState(0);
   const [loading, setLoading] = useState(true);
   const [mobileTab, setMobileTab] = useState<"timer" | "todos">("timer");
 
@@ -35,6 +38,8 @@ export default function AppPage() {
     if (res.ok) {
       const data = await res.json();
       setFocusCount(data.focusCount);
+      setTodayCount(data.focusCount);
+      setTodayMinutes(data.focusMinutes ?? 0);
     }
   }, []);
 
@@ -151,7 +156,37 @@ export default function AppPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-5">
+      {/* 桌面端今日进度卡片 (移动端 tab 切换隐藏) */}
+      <div className="hidden lg:grid grid-cols-3 gap-3 mb-1">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-tomato-50 to-orange-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-4 border border-tomato-100 dark:border-slate-700"
+        >
+          <div className="text-[10px] uppercase tracking-wider text-tomato-600 dark:text-tomato-400 font-medium">今日番茄</div>
+          <div className="text-3xl font-bold text-tomato-700 dark:text-tomato-300 tabular-nums mt-1">{todayCount}</div>
+          <div className="text-xs text-tomato-500/80 dark:text-tomato-400/80 mt-0.5">🍅 完成</div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+          className="bg-gradient-to-br from-tomato-50 to-orange-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-4 border border-tomato-100 dark:border-slate-700"
+        >
+          <div className="text-[10px] uppercase tracking-wider text-tomato-600 dark:text-tomato-400 font-medium">今日专注</div>
+          <div className="text-3xl font-bold text-tomato-700 dark:text-tomato-300 tabular-nums mt-1">{todayMinutes}</div>
+          <div className="text-xs text-tomato-500/80 dark:text-tomato-400/80 mt-0.5">分钟</div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="bg-gradient-to-br from-tomato-50 to-orange-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-4 border border-tomato-100 dark:border-slate-700"
+        >
+          <div className="text-[10px] uppercase tracking-wider text-tomato-600 dark:text-tomato-400 font-medium">待办任务</div>
+          <div className="text-3xl font-bold text-tomato-700 dark:text-tomato-300 tabular-nums mt-1">
+            {todos.filter((t) => t.status !== "done" && t.status !== "archived").length}
+          </div>
+          <div className="text-xs text-tomato-500/80 dark:text-tomato-400/80 mt-0.5">📝 未完成</div>
+        </motion.div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-5">
         <div className={mobileTab === "timer" ? "block" : "hidden sm:block"}>
           <PomodoroTimer
             settings={settings}
