@@ -4,7 +4,8 @@ import { apiFetch } from "@/lib/api-client";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Coffee, Timer as TimerIcon, TreePine } from "lucide-react";
+import { Coffee, Timer as TimerIcon, TreePine, FileText } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 type Item = {
   id: string;
@@ -15,6 +16,7 @@ type Item = {
 };
 
 export default function HistoryPage() {
+  const { t } = useT();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -91,19 +93,21 @@ export default function HistoryPage() {
                     : it.type === "short_break"
                     ? "text-tomato-500"
                     : "text-sky-500";
+                const typeLabel = it.type === "focus" ? "番茄" : it.type === "short_break" ? "短休" : "长休";
                 return (
                   <div
                     key={it.id}
-                    className="flex items-center gap-3 text-sm py-1.5 px-2 rounded-lg hover:bg-gray-50"
+                    className="flex items-center gap-3 text-sm py-1.5 px-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/50 transition group"
                   >
                     <Icon size={14} className={color} />
-                    <span className="text-gray-500 tabular-nums w-12">
+                    <span className="text-gray-500 dark:text-gray-400 tabular-nums w-12">
                       {format(new Date(it.completedAt), "HH:mm")}
                     </span>
-                    <span className="flex-1 truncate text-gray-700">
-                      {it.todo ? it.todo.title : "（纯专注）"}
+                    <span className="flex-1 min-w-0 text-gray-700 dark:text-gray-300 truncate">
+                      {it.todo ? it.todo.title : <span className="text-gray-400 italic">纯专注</span>}
                     </span>
-                    <span className="text-xs text-gray-400">{it.durationMin}m</span>
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase px-1.5 py-0.5 rounded bg-gray-100 dark:bg-slate-700 tabular-nums">{typeLabel}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums w-10 text-right">{it.durationMin}m</span>
                   </div>
                 );
               })}

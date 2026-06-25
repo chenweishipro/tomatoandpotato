@@ -8,9 +8,20 @@ export async function GET(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "100", 10), 500);
+  const date = searchParams.get("date"); // YYYY-MM-DD (本地时间, 单日范围)
+
+  // 计算单日的 UTC 范围: 当地 0:00 到次日 0:00
+  let dateFilter: { gte: Date; lt: Date } | undefined;
+  if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const dayStart = new Date(date + "T00:00:00");
+    const dayEnd = new Date(date + "T23:59:59.999");
+    if (!isNaN(dayStart.getTime())) {
+      dateFilter = { gte: dayStart, lt: dayEnd };
+    }
+  }
 
   const pomodoros = await prisma.pomodoro.findMany({
-    where: { userId: user.id },
+    where: { userId: user.id, ...(dateFilter ? { completedAt: dateFilter } : {}) },
     orderBy: { completedAt: "desc" },
     take: limit,
     include: { todo: { select: { id: true, title: true } } },

@@ -6,6 +6,7 @@ import { startOfDay } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { useT } from "@/lib/i18n";
+import { DayDetailModal } from "@/components/day-detail-modal";
 
 type Week = { date: string; count: number; minutes: number };
 type Month = { year: number; month: number; days: Record<string, number> };
@@ -48,6 +49,7 @@ export default function StatsPage() {
 
   const [viewYear, setViewYear] = useState(new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(new Date().getMonth() + 1);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -105,7 +107,7 @@ export default function StatsPage() {
         title={`📅 ${t("stats.week")}`}
         rightSlot={<span className="text-xs text-gray-500">共 {weekTotal} 🍅 · {weekMinutes} 分钟</span>}
       >
-        <WeekHeatmap week={week} />
+        <WeekHeatmap week={week} onCellClick={setSelectedDate} />
       </HeatmapSection>
 
       {/* 月 */}
@@ -133,7 +135,7 @@ export default function StatsPage() {
           </div>
         }
       >
-        <MonthHeatmap year={viewYear} month={viewMonth} days={month?.days ?? {}} />
+        <MonthHeatmap year={viewYear} month={viewMonth} days={month?.days ?? {}} onCellClick={setSelectedDate} />
       </HeatmapSection>
 
       {/* 年 */}
@@ -141,10 +143,12 @@ export default function StatsPage() {
         title={`🌳 ${t("stats.year")}`}
         rightSlot={<span className="text-xs text-gray-500">共 {yearTotal} 🍅</span>}
       >
-        <YearHeatmap year={heatmap?.year ?? viewYear} days={heatmap?.days ?? {}} />
+        <YearHeatmap year={heatmap?.year ?? viewYear} days={heatmap?.days ?? {}} onCellClick={setSelectedDate} />
       </HeatmapSection>
 
       <Legend />
+
+      <DayDetailModal date={selectedDate} onClose={() => setSelectedDate(null)} />
     </div>
   );
 }
@@ -186,7 +190,7 @@ function HeatmapSection({
 /**
  * 周：7 个小方块横排，下面加日期数字
  */
-function WeekHeatmap({ week }: { week: Week[] }) {
+function WeekHeatmap({ week, onCellClick }: { week: Week[]; onCellClick: (date: string) => void }) {
   const today = startOfDay().getTime();
   const weekMax = week.reduce((m, d) => Math.max(m, d.count), 0);
   return (
@@ -210,6 +214,7 @@ function WeekHeatmap({ week }: { week: Week[] }) {
                   (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white" : "")
                 }
                 title={dt ? `${dt.toISOString().slice(0, 10)} - ${count} 🍅` : ""}
+                onClick={() => dt && dayData.count > 0 && onCellClick(dt.toISOString().slice(0, 10))}
               />
               <div className="text-[10px] text-gray-500 tabular-nums">
                 {dt ? dt.getDate() : ""}
@@ -229,10 +234,12 @@ function MonthHeatmap({
   year,
   month,
   days,
+  onCellClick,
 }: {
   year: number;
   month: number;
   days: Record<string, number>;
+  onCellClick: (date: string) => void;
 }) {
   const firstDay = new Date(year, month - 1, 1).getDay();
   const firstDayIdx = (firstDay + 6) % 7; // 周一为 0
@@ -281,6 +288,7 @@ function MonthHeatmap({
                   (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white" : "")
                 }
                 title={`${cell.key} - ${cell.count} 🍅`}
+                onClick={() => cell.count > 0 && onCellClick(cell.key)}
               >
                 <div className="absolute inset-0 flex items-center justify-center text-[9px] text-gray-500 font-medium">
                   {cell.day}
@@ -299,7 +307,15 @@ function MonthHeatmap({
  * 每个 1 号从当月第一天所在的星期几位置开始（自动对齐）
  * 总计 365/366 个格子全显示
  */
-function YearHeatmap({ year, days }: { year: number; days: Record<string, number> }) {
+function YearHeatmap({
+  year,
+  days,
+  onCellClick,
+}: {
+  year: number;
+  days: Record<string, number>;
+  onCellClick: (date: string) => void;
+}) {
   // 1. 生成一年所有日期，Mon=0..Sun=6
   const allDates: { date: Date; key: string; count: number }[] = [];
   const startDate = new Date(year, 0, 1);
@@ -380,6 +396,7 @@ function YearHeatmap({ year, days }: { year: number; days: Record<string, number
                       (isFirstOfMonth ? " ring-1 ring-gray-400" : "")
                     }
                     title={`${cell.key} - ${cell.count} 🍅${isFirstOfMonth ? ` (${MONTH_NAMES[m]} 1 号)` : ""}`}
+                    onClick={() => cell.count > 0 && onCellClick(cell.key)}
                   />
                 );
               })}
