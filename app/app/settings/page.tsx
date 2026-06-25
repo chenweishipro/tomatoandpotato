@@ -4,6 +4,8 @@ import { apiFetch } from "@/lib/api-client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { WechatQrModal } from "@/components/wechat-qr-modal";
+import { useSession } from "next-auth/react";
 
 type Settings = {
   focusMinutes: number;
@@ -16,8 +18,124 @@ type Settings = {
   soundType: string;
 };
 
+function WechatBindSection({ userEmail }: { userEmail: string }) {
+  const { t } = useT();
+  const [bound, setBound] = useState<{ openid: string; nickname: string | null; avatar: string | null; boundAt: string | null } | null>(null);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  // 检查 bind 回调结果
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const bindResult = params.get("wechat_bind");
+    if (bindResult) {
+      const messages: Record<string, { type: "ok" | "err"; text: string }> = {
+        success: { type: "ok", text: "✓ 微信绑定成功" },
+        already_bound: { type: "err", text: "该微信已绑定其他账号" },
+        invalid_state: { type: "err", text: "绑定失败: state 校验失败" },
+        no_code: { type: "err", text: "绑定失败: 微信未返回 code" },
+        failed: { type: "err", text: "绑定失败, 请重试" },
+      };
+      setMsg(messages[bindResult] || { type: "err", text: `绑定结果: ${bindResult}` });
+      // 清理 URL
+      params.delete("wechat_bind");
+      params.delete("msg");
+      const newQs = params.toString();
+      window.history.replaceState({}, "", window.location.pathname + (newQs ? "?" + newQs : ""));
+      setTimeout(() => setMsg(null), 4000);
+    }
+  }, []);
+
+  // 查询当前绑定状态
+  useEffect(() => {
+    fetch("/api/wechat/bind-status")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.bound) setBound(d);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  async function unbind() {
+    if (!confirm("确定解绑微信? 解绑后将无法用微信登录此账号")) return;
+    const r = await fetch("/api/wechat/unbind", { method: "POST" });
+    if (r.ok) {
+      setBound(null);
+      setMsg({ type: "ok", text: "已解绑" });
+      setTimeout(() => setMsg(null), 3000);
+    }
+  }
+
+  return (
+    <Section title="🟢 微信绑定">
+      {loading ? (
+        <div className="py-4 text-sm text-gray-500">加载中…</div>
+      ) : bound ? (
+        <div className="py-2 space-y-3">
+          <div className="flex items-center gap-3">
+            {bound.avatar ? (
+              <img src={bound.avatar} alt={bound.nickname || ""} className="w-12 h-12 rounded-full border-2 border-green-200" />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-2xl">🟢</div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {bound.nickname || "微信用户"}
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                openid: {bound.openid.slice(0, 8)}...
+                {bound.boundAt && (
+                  <span className="ml-2">· 绑定于 {new Date(bound.boundAt).toLocaleDateString("zh-CN")}</span>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={unbind}
+              className="px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-700 hover:border-red-300 hover:text-red-600 rounded-lg transition"
+            >
+              解绑
+            </button>
+          </div>
+          {msg && (
+            <div className={"text-sm px-3 py-2 rounded-lg " + (msg.type === "ok" ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50")}>
+              {msg.text}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="py-2 space-y-3">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            绑定微信后, 可用微信扫码快速登录
+          </p>
+          <button
+            onClick={() => setOpen(true)}
+            className="px-4 py-2 bg-[#07c160] hover:bg-[#06ae56] text-white text-sm font-medium rounded-lg transition active:scale-95 flex items-center gap-2"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8.69 11.52c-.36 0-.65-.3-.65-.66s.29-.66.65-.66.66.3.66.66-.3.66-.66.66zm6.62 0c-.36 0-.65-.3-.65-.66s.29-.66.65-.66.66.3.66.66-.3.66-.66.66z" />
+            </svg>
+            绑定微信
+          </button>
+          {msg && (
+            <div className={"text-sm px-3 py-2 rounded-lg " + (msg.type === "ok" ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50")}>
+              {msg.text}
+            </div>
+          )}
+        </div>
+      )}
+      <WechatQrModal open={open} onClose={() => setOpen(false)} intent="bind" />
+    </Section>
+  );
+}
+
 export default function SettingsPage() {
   const { t } = useT();
+  const { data: session } = useSession();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -176,6 +294,8 @@ export default function SettingsPage() {
 
 
 <ChangePasswordSection />
+
+      <WechatBindSection userEmail={session?.user?.email || ""} />
 
 
 </div>

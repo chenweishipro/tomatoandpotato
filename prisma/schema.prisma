@@ -16,6 +16,13 @@ model User {
   name         String?
   createdAt    DateTime   @default(now())
 
+  // 微信绑定 (扫码登录用)
+  wechatOpenid   String?   @unique // 微信公众号/开放平台 openid
+  wechatUnionid  String?   @unique // 同一开发者下多个 app 共享, 可选
+  wechatNickname String?
+  wechatAvatar   String?
+  wechatBoundAt  DateTime?
+
   todos      Todo[]
   pomodoros  Pomodoro[]
   settings   Settings?
