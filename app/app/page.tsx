@@ -104,8 +104,8 @@ export default function AppPage() {
         window.dispatchEvent(new CustomEvent("tomato:reset"));
       } else if (e.key === "1") setMobileTab("timer");
       else if (e.key === "2") setMobileTab("todos");
-      else if (e.key === "3") window.location.href = "/app/stats";
-      else if (e.key === "4") window.location.href = "/app/history";
+      else if (e.key === "3") window.location.href = "/tomato/app/stats";
+      else if (e.key === "4") window.location.href = "/tomato/app/history";
       else if (e.key === "Escape") window.dispatchEvent(new CustomEvent("tomato:abandon"));
     }
     window.addEventListener("keydown", onKey);

@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
 
 export default function ResetPasswordPage() {
@@ -112,9 +113,9 @@ function ResetPasswordForm() {
         </div>
 
         <div className="text-center mt-4">
-          <a href="/login/" className="text-sm text-tomato-600 hover:underline">
+          <Link href="/login/" className="text-sm text-tomato-600 hover:underline">
             ← 返回登录
-          </a>
+          </Link>
         </div>
       </div>
     </div>

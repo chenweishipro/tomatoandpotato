@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { apiFetch } from "@/lib/api-client";
+import Link from "next/link";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -88,9 +89,9 @@ export default function ForgotPasswordPage() {
         </div>
 
         <div className="text-center mt-4">
-          <a href="/login/" className="text-sm text-tomato-600 hover:underline">
+          <Link href="/login/" className="text-sm text-tomato-600 hover:underline">
             ← 返回登录
-          </a>
+          </Link>
         </div>
       </div>
     </div>
