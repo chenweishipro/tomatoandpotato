@@ -13,7 +13,7 @@ import type { Todo } from "@/components/todo-list";
 const PRIORITY_COLORS: Record<number, { dot: string; text: string; label: string }> = {
   0: { dot: "bg-tomato-500", text: "text-tomato-700", label: "P0" },
   1: { dot: "bg-orange-500", text: "text-orange-700", label: "P1" },
-  2: { dot: "bg-gray-400", text: "text-gray-600", label: "P2" },
+  2: { dot: "bg-gray-400", text: "text-gray-600 dark:text-gray-400 dark:text-gray-500", label: "P2" },
 };
 
 type Quadrant = "Q1" | "Q2" | "Q3" | "Q4";
@@ -53,8 +53,8 @@ const QUADRANT_META: Record<Quadrant, {
   Q4: {
     title: "不重要 + 不紧急",
     subtitle: "Defer · 延后 / 删除",
-    headerBg: "bg-gray-50",
-    borderColor: "border-gray-200",
+    headerBg: "bg-gray-50 dark:bg-slate-800",
+    borderColor: "border-gray-200 dark:border-slate-700",
     icon: "🗑️",
     advice: "考虑删掉或挪到空余时间",
   },
@@ -138,15 +138,15 @@ export function QuadrantView({
   return (
     <div className="space-y-3">
       {/* 提示条 */}
-      <div className="bg-gradient-to-r from-tomato-50 via-blue-50 to-amber-50 rounded-2xl p-3 border border-gray-100">
-        <div className="text-xs text-gray-600 flex items-center gap-1.5 flex-wrap">
+      <div className="bg-gradient-to-r from-tomato-50 via-blue-50 to-amber-50 rounded-2xl p-3 border border-gray-100 dark:border-slate-700">
+        <div className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-500 flex items-center gap-1.5 flex-wrap">
           <span>📐</span>
           <span>艾森豪威尔矩阵：按</span>
-          <strong className="text-gray-800">重要性</strong>
+          <strong className="text-gray-800 dark:text-gray-200">重要性</strong>
           <span>+</span>
-          <strong className="text-gray-800">截止时间</strong>
+          <strong className="text-gray-800 dark:text-gray-200">截止时间</strong>
           <span>+</span>
-          <strong className="text-gray-800">预计番茄数</strong>
+          <strong className="text-gray-800 dark:text-gray-200">预计番茄数</strong>
           <span>自动排序</span>
         </div>
       </div>
@@ -218,23 +218,23 @@ function QuadrantCard({
 }) {
   const meta = QUADRANT_META[quadrant];
   return (
-    <div className={cn("rounded-2xl border bg-white/80 backdrop-blur-sm overflow-hidden", meta.borderColor)}>
+    <div className={cn("rounded-2xl border bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm overflow-hidden", meta.borderColor)}>
       <div className={cn("px-4 py-2.5 border-b", meta.headerBg, meta.borderColor)}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span className="text-base">{meta.icon}</span>
-            <h3 className="font-semibold text-sm text-gray-900">{meta.title}</h3>
-            <span className="text-[10px] text-gray-500">· {meta.subtitle}</span>
+            <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100">{meta.title}</h3>
+            <span className="text-[10px] text-gray-500 dark:text-gray-400 dark:text-gray-500">· {meta.subtitle}</span>
           </div>
-          <span className="text-xs font-medium text-gray-600 bg-white/70 px-2 py-0.5 rounded-full">
+          <span className="text-xs font-medium text-gray-600 dark:text-gray-400 dark:text-gray-500 bg-white/70 px-2 py-0.5 rounded-full">
             {todos.length}
           </span>
         </div>
-        <p className="text-[10px] text-gray-500 mt-0.5">{meta.advice}</p>
+        <p className="text-[10px] text-gray-500 dark:text-gray-400 dark:text-gray-500 mt-0.5">{meta.advice}</p>
       </div>
       <div className="p-2 min-h-[120px] max-h-[280px] overflow-y-auto space-y-1.5">
         {todos.length === 0 ? (
-          <div className="text-center py-6 text-xs text-gray-400">暂无任务</div>
+          <div className="text-center py-6 text-xs text-gray-400 dark:text-gray-500">暂无任务</div>
         ) : (
           <AnimatePresence>
             {todos.map((t) => (
@@ -293,13 +293,13 @@ function QuadrantItem({
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
       className={cn(
         "group rounded-lg border transition",
-        isActive ? "bg-tomato-50 border-tomato-200" : "bg-white border-gray-100 hover:border-gray-200"
+        isActive ? "bg-tomato-50 border-tomato-200" : "bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-700 hover:border-gray-200 dark:hover:border-slate-600 dark:border-slate-700"
       )}
     >
       <div className="flex items-center gap-1.5 p-2">
         <button
           onClick={() => onSetStatus(todo.id, "done")}
-          className="shrink-0 w-4 h-4 rounded border-2 border-gray-300 hover:border-tomato-400 transition"
+          className="shrink-0 w-4 h-4 rounded border-2 border-gray-300 dark:border-slate-600 hover:border-tomato-400 transition"
           aria-label="完成"
         />
         <button
@@ -314,15 +314,15 @@ function QuadrantItem({
           className="flex-1 min-w-0 cursor-pointer"
           onClick={() => hasDescription && setExpanded(!expanded)}
         >
-          <p className="text-xs text-gray-800 leading-tight">
+          <p className="text-xs text-gray-800 dark:text-gray-200 leading-tight">
             {todo.title}
           </p>
-          <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-500">
+          <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-gray-500 dark:text-gray-400 dark:text-gray-500">
             {todo.deadline && (
               <span
                 className={cn(
                   "inline-flex items-center gap-0.5",
-                  isOverdue ? "text-tomato-600 font-medium" : daysLeft !== null && daysLeft <= 3 ? "text-orange-600" : "text-gray-500"
+                  isOverdue ? "text-tomato-600 font-medium" : daysLeft !== null && daysLeft <= 3 ? "text-orange-600" : "text-gray-500 dark:text-gray-400 dark:text-gray-500"
                 )}
               >
                 <CalendarDays size={9} />
@@ -348,7 +348,7 @@ function QuadrantItem({
         <div className="shrink-0 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
           <button
             onClick={onEdit.bind(null, todo)}
-            className="p-1 text-gray-400 hover:text-gray-700 rounded transition"
+            className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 dark:text-gray-300 rounded transition"
             title="编辑"
           >
             <Edit3 size={11} />
@@ -362,7 +362,7 @@ function QuadrantItem({
               "p-1 rounded transition",
               isActive
                 ? "bg-tomato-200 text-tomato-700"
-                : "text-gray-400 hover:text-tomato-600"
+                : "text-gray-400 dark:text-gray-500 hover:text-tomato-600"
             )}
             title="用这个任务专注"
           >
@@ -379,7 +379,7 @@ function QuadrantItem({
             transition={{ duration: 0.15 }}
             className="overflow-hidden"
           >
-            <div className="px-2.5 pb-2 pt-1 border-t border-gray-100">
+            <div className="px-2.5 pb-2 pt-1 border-t border-gray-100 dark:border-slate-700">
               <MarkdownView content={todo.description!} compact />
             </div>
           </motion.div>

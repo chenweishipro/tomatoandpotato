@@ -25,7 +25,7 @@ if [ ! -f "$APP_JS" ]; then
   exit 1
 fi
 HITS=0
-[ $(grep -c "今日进度" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
+[ $(grep -c "今日番茄" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
 [ $(grep -c "todayCount" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
 [ $(grep -c "行为" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
 echo "marker hits: $HITS / 3 (至少 1 个)"

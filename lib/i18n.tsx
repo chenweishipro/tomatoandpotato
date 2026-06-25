@@ -11,7 +11,15 @@ const I18nContext = createContext<{
   locale: Locale;
   setLocale: (l: Locale) => void;
   t: (key: string, vars?: Record<string, string | number>) => string;
-}>({ locale: "zh", setLocale: () => {}, t: (k) => k });
+}>({
+  locale: "zh",
+  setLocale: () => {},
+  t: (key, vars) => {
+    let s = dicts.zh[key] || key;
+    if (vars) for (const [k, v] of Object.entries(vars)) s = s.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+    return s;
+  },
+});
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("zh");

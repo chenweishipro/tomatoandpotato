@@ -6,7 +6,6 @@ import { signOut } from "next-auth/react";
 import { BarChart3, Settings, Timer, History, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-provider";
-import { LanguageSwitcher } from "@/lib/i18n";
 
 const links = [
   { href: "/app", label: "专注", icon: Timer },
@@ -50,7 +49,6 @@ export function Header({ user }: { user: { name?: string | null; email?: string 
         </nav>
 
         <div className="flex items-center gap-2">
-          <LanguageSwitcher />
           <ThemeToggle />
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-tomato-400 to-tomato-600 text-white text-sm font-medium flex items-center justify-center">
             {initial}

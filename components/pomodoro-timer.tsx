@@ -608,7 +608,7 @@ export function PomodoroTimer({
       : "text-sky-500";
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 dark:border-slate-700">
       {/* 阶段标签（仅作显示，不提供切换） */}
       <div className="flex justify-center mb-4">
         <div className={cn(
@@ -634,7 +634,7 @@ export function PomodoroTimer({
             </button>
           </div>
         ) : (
-          <p className="text-sm text-gray-400">没有选中 Todo？纯专注也行</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500">没有选中 Todo？纯专注也行</p>
         )}
       </div>
 
@@ -684,13 +684,13 @@ export function PomodoroTimer({
                 exit={{ opacity: 0 }}
                 className="text-center"
               >
-                <div className="text-xs uppercase tracking-widest text-gray-400 mb-2">
+                <div className="text-xs uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-2">
                   {phaseLabel}
                 </div>
-                <div className="text-6xl sm:text-7xl font-light tabular-nums text-gray-900">
+                <div className="text-6xl sm:text-7xl font-light tabular-nums text-gray-900 dark:text-gray-100">
                   {formatTime(remaining)}
                 </div>
-                <div className="text-xs text-gray-400 mt-2">
+                <div className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                   今日已完成 {focusCount} 🍅
                 </div>
               </motion.div>
@@ -720,7 +720,7 @@ export function PomodoroTimer({
         )}
         <button
           onClick={handleAbandon}
-          className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-medium rounded-2xl transition active:scale-95"
+          className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 dark:border-slate-600 text-gray-700 dark:text-gray-300 font-medium rounded-2xl transition active:scale-95"
           aria-label={phase === "focus" ? "放弃番茄" : "跳过休息"}
           title={phase === "focus" ? "放弃番茄（本次专注不计入完成数）" : "跳过休息，强制切回专注"}
         >
@@ -735,7 +735,7 @@ export function PomodoroTimer({
       <div className="mt-6 flex items-center justify-center gap-2 flex-wrap text-sm">
         <button
           onClick={() => setSoundOn(!soundOn)}
-          className="flex items-center gap-1 px-2.5 py-1 text-gray-500 hover:text-gray-700"
+          className="flex items-center gap-1 px-2.5 py-1 text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 dark:text-gray-300"
         >
           {soundOn ? <Volume2 size={14} /> : <VolumeX size={14} />}
         </button>
@@ -750,7 +750,7 @@ export function PomodoroTimer({
               "px-2.5 py-1 rounded-full text-xs transition",
               sound === s
                 ? "bg-tomato-100 text-tomato-700"
-                : "text-gray-500 hover:bg-gray-100"
+                : "text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 dark:bg-slate-800"
             )}
           >
             {SOUND_LABELS[s]}

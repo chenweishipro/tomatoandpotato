@@ -26,7 +26,7 @@ if [ ! -f "$APP_JS" ]; then
 fi
 # 关键 marker: 不同 commit 至少一个能匹配
 HITS=0
-[ $(grep -c "今日进度" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
+[ $(grep -c "今日番茄" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
 [ $(grep -c "setTodayCount" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
 [ $(grep -c "setTodayMinutes" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
 [ $(grep -c "todayCount" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true

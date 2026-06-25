@@ -27,7 +27,7 @@ const MONTH_LABELS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
  * max=0 退化到全 0（不会触发）
  */
 function cellColor(c: number, max: number): string {
-  if (c === 0) return "bg-gray-100";
+  if (c === 0) return "bg-gray-100 dark:bg-slate-800";
   if (max <= 1) return "bg-tomato-200";  // 只有 1 个有数据时，直接浅红
   // log scale: ratio = log(c+1) / log(max+1), 均匀分布到 0-1
   const ratio = Math.log(c + 1) / Math.log(max + 1);
@@ -84,7 +84,7 @@ export default function StatsPage() {
     setViewYear(y);
   }
 
-  if (loading) return <div className="text-center text-gray-400 py-20">{t("common.loading")}</div>;
+  if (loading) return <div className="text-center text-gray-400 dark:text-gray-500 py-20">{t("common.loading")}</div>;
 
   const weekTotal = week.reduce((s, d) => s + d.count, 0);
   const weekMinutes = week.reduce((s, d) => s + d.minutes, 0);
@@ -105,7 +105,7 @@ export default function StatsPage() {
       {/* 周 */}
       <HeatmapSection
         title={`📅 ${t("stats.week")}`}
-        rightSlot={<span className="text-xs text-gray-500">共 {weekTotal} 🍅 · {weekMinutes} 分钟</span>}
+        rightSlot={<span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">共 {weekTotal} 🍅 · {weekMinutes} 分钟</span>}
       >
         <WeekHeatmap week={week} onCellClick={setSelectedDate} />
       </HeatmapSection>
@@ -117,17 +117,17 @@ export default function StatsPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => shiftMonth(-1)}
-              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 dark:bg-slate-800 text-gray-500 dark:text-gray-400 dark:text-gray-500"
               aria-label="上一月"
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="text-sm font-medium text-gray-700 tabular-nums w-24 text-center">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 tabular-nums w-24 text-center">
               {viewYear} · {MONTH_NAMES[viewMonth - 1]}
             </span>
             <button
               onClick={() => shiftMonth(1)}
-              className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
+              className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 dark:bg-slate-800 text-gray-500 dark:text-gray-400 dark:text-gray-500"
               aria-label="下一月"
             >
               <ChevronRight size={16} />
@@ -141,7 +141,7 @@ export default function StatsPage() {
       {/* 年 */}
       <HeatmapSection
         title={`🌳 ${t("stats.year")}`}
-        rightSlot={<span className="text-xs text-gray-500">共 {yearTotal} 🍅</span>}
+        rightSlot={<span className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">共 {yearTotal} 🍅</span>}
       >
         <YearHeatmap year={heatmap?.year ?? viewYear} days={heatmap?.days ?? {}} onCellClick={setSelectedDate} />
       </HeatmapSection>
@@ -155,13 +155,13 @@ export default function StatsPage() {
 
 function StatCard({ label, value, suffix }: { label: string; value: string; suffix: string }) {
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-gray-100">
-      <div className="text-xs text-gray-500 mb-1">{label}</div>
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-slate-700">
+      <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 mb-1">{label}</div>
       <div className="flex items-baseline gap-1">
-        <div className="text-2xl sm:text-3xl font-semibold text-gray-900 tabular-nums">
+        <div className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-gray-100 tabular-nums">
           {value}
         </div>
-        <div className="text-xs text-gray-500">{suffix}</div>
+        <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">{suffix}</div>
       </div>
     </div>
   );
@@ -177,9 +177,9 @@ function HeatmapSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100">
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-slate-700">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
         {rightSlot}
       </div>
       {children}
@@ -203,7 +203,7 @@ function WeekHeatmap({ week, onCellClick }: { week: Week[]; onCellClick: (date: 
           const count = dayData?.count ?? 0;
           return (
             <div key={i} className="flex flex-col items-center gap-1.5">
-              <div className="text-[10px] text-gray-400 font-medium">{w}</div>
+              <div className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">{w}</div>
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -211,12 +211,12 @@ function WeekHeatmap({ week, onCellClick }: { week: Week[]; onCellClick: (date: 
                 className={
                   "w-9 h-9 sm:w-10 sm:h-10 rounded-md transition cursor-pointer hover:ring-2 hover:ring-tomato-400 " +
                   cellColor(count, weekMax) +
-                  (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white" : "")
+                  (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white dark:ring-offset-slate-900" : "")
                 }
                 title={dt ? `${dt.toISOString().slice(0, 10)} - ${count} 🍅` : ""}
                 onClick={() => dt && dayData.count > 0 && onCellClick(dt.toISOString().slice(0, 10))}
               />
-              <div className="text-[10px] text-gray-500 tabular-nums">
+              <div className="text-[10px] text-gray-500 dark:text-gray-400 dark:text-gray-500 tabular-nums">
                 {dt ? dt.getDate() : ""}
               </div>
             </div>
@@ -267,7 +267,7 @@ function MonthHeatmap({
       <div className="w-fit mx-auto sm:mx-0">
         <div className="grid grid-cols-7 gap-1 mb-2">
           {WEEKDAY_LABELS.map((w) => (
-            <div key={w} className="text-center text-[10px] text-gray-400 font-medium">
+            <div key={w} className="text-center text-[10px] text-gray-400 dark:text-gray-500 font-medium">
               {w}
             </div>
           ))}
@@ -285,12 +285,12 @@ function MonthHeatmap({
                 className={
                   "w-9 h-9 sm:w-10 sm:h-10 rounded-sm transition cursor-pointer hover:ring-2 hover:ring-tomato-400 relative group " +
                   cellColor(cell.count, monthMax) +
-                  (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white" : "")
+                  (isToday ? " ring-2 ring-tomato-500 ring-offset-1 ring-offset-white dark:ring-offset-slate-900" : "")
                 }
                 title={`${cell.key} - ${cell.count} 🍅`}
                 onClick={() => cell.count > 0 && onCellClick(cell.key)}
               >
-                <div className="absolute inset-0 flex items-center justify-center text-[9px] text-gray-500 font-medium">
+                <div className="absolute inset-0 flex items-center justify-center text-[9px] text-gray-500 dark:text-gray-400 dark:text-gray-500 font-medium">
                   {cell.day}
                 </div>
               </motion.div>
@@ -366,7 +366,7 @@ function YearHeatmap({
           {weeks.map((_, wi) => {
             const lbl = monthLabelWeeks.find((m) => m.weekIdx === wi);
             return (
-              <div key={wi} className="w-3.5 text-[9px] text-gray-400 font-medium leading-none">
+              <div key={wi} className="w-3.5 text-[9px] text-gray-400 dark:text-gray-500 font-medium leading-none">
                 {lbl ? lbl.label : ""}
               </div>
             );
@@ -414,9 +414,9 @@ function YearHeatmap({
 function Legend() {
   const { t } = useT();
   return (
-    <div className="flex items-center justify-end gap-2 text-xs text-gray-500 px-1">
+    <div className="flex items-center justify-end gap-2 text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 px-1">
       <span>{t("stats.less")}</span>
-      <div className="w-3 h-3 rounded-sm bg-gray-100" />
+      <div className="w-3 h-3 rounded-sm bg-gray-100 dark:bg-slate-800" />
       <div className="w-3 h-3 rounded-sm bg-tomato-200" />
       <div className="w-3 h-3 rounded-sm bg-tomato-400" />
       <div className="w-3 h-3 rounded-sm bg-tomato-500" />

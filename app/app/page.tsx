@@ -119,7 +119,7 @@ export default function AppPage() {
 
   if (loading || !settings) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400">
+      <div className="flex items-center justify-center h-64 text-gray-400 dark:text-gray-500">
         加载中…
       </div>
     );
@@ -130,14 +130,14 @@ export default function AppPage() {
   return (
     <>
       {/* 移动端 tab 切换 */}
-      <div className="sm:hidden flex gap-1 p-1 bg-gray-100/80 rounded-full mb-4 w-fit mx-auto">
+      <div className="sm:hidden flex gap-1 p-1 bg-gray-100 dark:bg-slate-800/80 rounded-full mb-4 w-fit mx-auto">
         <button
           onClick={() => setMobileTab("timer")}
           className={
             "px-5 py-1.5 text-sm font-medium rounded-full transition " +
             (mobileTab === "timer"
-              ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500")
+              ? "bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 shadow-sm"
+              : "text-gray-500 dark:text-gray-400 dark:text-gray-500")
           }
         >
           🍅 番茄
@@ -147,8 +147,8 @@ export default function AppPage() {
           className={
             "px-5 py-1.5 text-sm font-medium rounded-full transition " +
             (mobileTab === "todos"
-              ? "bg-white text-gray-900 shadow-sm"
-              : "text-gray-500")
+              ? "bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 shadow-sm"
+              : "text-gray-500 dark:text-gray-400 dark:text-gray-500")
           }
         >
           ✅ 任务 {todos.filter((t) => t.status !== "done" && t.status !== "archived").length > 0 &&

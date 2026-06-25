@@ -38,7 +38,7 @@ type Props = {
 const PRIORITY_COLORS: Record<number, { bg: string; dot: string; text: string; label: string }> = {
   0: { bg: "bg-tomato-50", dot: "bg-tomato-500", text: "text-tomato-700", label: "P0" },
   1: { bg: "bg-orange-50", dot: "bg-orange-500", text: "text-orange-700", label: "P1" },
-  2: { bg: "bg-gray-100", dot: "bg-gray-400", text: "text-gray-600", label: "P2" },
+  2: { bg: "bg-gray-100 dark:bg-slate-800", dot: "bg-gray-400", text: "text-gray-600 dark:text-gray-400 dark:text-gray-500", label: "P2" },
 };
 
 export function TodoList({ todos, activeTodoId, onSetActive, onRefresh }: Props) {
@@ -77,17 +77,17 @@ export function TodoList({ todos, activeTodoId, onSetActive, onRefresh }: Props)
 
   return (
     <>
-      <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100 flex flex-col h-full">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-3xl p-5 sm:p-6 shadow-sm border border-gray-100 dark:border-slate-700 flex flex-col h-full">
         <div className="flex items-center justify-between mb-4 gap-2">
-          <h2 className="text-lg font-semibold text-gray-900">📝 任务</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">📝 任务</h2>
           <div className="flex items-center gap-1">
             {/* 视图切换 */}
-            <div className="flex bg-gray-100/80 rounded-lg p-0.5">
+            <div className="flex bg-gray-100 dark:bg-slate-800/80 rounded-lg p-0.5">
               <button
                 onClick={() => setView("list")}
                 className={cn(
                   "p-1.5 rounded-md transition",
-                  view === "list" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                  view === "list" ? "bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 shadow-sm" : "text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 dark:text-gray-300"
                 )}
                 title="列表视图"
               >
@@ -97,7 +97,7 @@ export function TodoList({ todos, activeTodoId, onSetActive, onRefresh }: Props)
                 onClick={() => setView("quadrant")}
                 className={cn(
                   "p-1.5 rounded-md transition",
-                  view === "quadrant" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                  view === "quadrant" ? "bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 shadow-sm" : "text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 dark:text-gray-300"
                 )}
                 title="四象限视图"
               >
@@ -141,7 +141,7 @@ export function TodoList({ todos, activeTodoId, onSetActive, onRefresh }: Props)
 
           {todoItems.length > 0 && (
             <section>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 px-1">
+              <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 px-1">
                 待办 ({todoItems.length})
               </h3>
               <AnimatePresence>
@@ -165,7 +165,7 @@ export function TodoList({ todos, activeTodoId, onSetActive, onRefresh }: Props)
             <section>
               <button
                 onClick={() => setShowDone(!showDone)}
-                className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 px-1 hover:text-gray-600"
+                className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5 px-1 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 dark:text-gray-500"
               >
                 已完成 ({done.length}) {showDone ? "▾" : "▸"}
               </button>
@@ -188,7 +188,7 @@ export function TodoList({ todos, activeTodoId, onSetActive, onRefresh }: Props)
           )}
 
           {todos.length === 0 && (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-gray-400 dark:text-gray-500">
               <div className="text-4xl mb-2">🌱</div>
               <p className="text-sm">还没有任务，点右上角"新建"开始</p>
             </div>
@@ -269,8 +269,8 @@ function TodoCard({
         isActive
           ? "bg-tomato-50 border-tomato-200"
           : isDone
-          ? "bg-gray-50 border-gray-100"
-          : "bg-white border-gray-100 hover:border-gray-200"
+          ? "bg-gray-50 dark:bg-slate-800 border-gray-100 dark:border-slate-700"
+          : "bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-700 hover:border-gray-200 dark:hover:border-slate-600 dark:border-slate-700"
       )}
     >
       <div className="flex items-center gap-2 p-2.5">
@@ -281,7 +281,7 @@ function TodoCard({
             "shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition",
             isDone
               ? "bg-tomato-500 border-tomato-500 text-white"
-              : "border-gray-300 hover:border-tomato-400"
+              : "border-gray-300 dark:border-slate-600 hover:border-tomato-400"
           )}
           aria-label="完成"
         >
@@ -307,7 +307,7 @@ function TodoCard({
             className={cn(
               "text-sm",
               hasDescription ? "" : "truncate",
-              isDone ? "line-through text-gray-400" : "text-gray-800"
+              isDone ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-800 dark:text-gray-200"
             )}
           >
             {todo.title}
@@ -317,7 +317,7 @@ function TodoCard({
               <span className="text-[10px] text-tomato-500">🍅 × {todo.pomodoroCount}</span>
             )}
             {hasDescription && (
-              <span className="text-[10px] text-gray-400">
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">
                 · {todo.description!.length} 字
               </span>
             )}
@@ -328,7 +328,7 @@ function TodoCard({
         {hasDescription && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="shrink-0 p-1 text-gray-400 hover:text-gray-600 rounded-md transition"
+            className="shrink-0 p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 dark:text-gray-400 dark:text-gray-500 rounded-md transition"
             aria-label="展开"
           >
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -339,7 +339,7 @@ function TodoCard({
         <div className="shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
           <button
             onClick={onEdit}
-            className="p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 rounded-md transition"
+            className="p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 dark:bg-slate-800 hover:text-gray-700 dark:hover:text-gray-200 dark:text-gray-300 rounded-md transition"
             title="编辑"
             aria-label="编辑"
           >
@@ -355,7 +355,7 @@ function TodoCard({
                 "p-1 rounded-md transition",
                 isActive
                   ? "bg-tomato-200 text-tomato-700"
-                  : "text-gray-400 hover:bg-gray-100 hover:text-tomato-600"
+                  : "text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 dark:bg-slate-800 hover:text-tomato-600"
               )}
               title="用这个任务专注"
               aria-label="开始专注"
@@ -365,7 +365,7 @@ function TodoCard({
           )}
           <button
             onClick={() => onRemove(todo.id)}
-            className="p-1 text-gray-400 hover:bg-gray-100 hover:text-tomato-600 rounded-md transition"
+            className="p-1 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 dark:bg-slate-800 hover:text-tomato-600 rounded-md transition"
             title="删除"
             aria-label="删除"
           >
@@ -384,7 +384,7 @@ function TodoCard({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-3 pb-3 pt-1 border-t border-gray-100">
+            <div className="px-3 pb-3 pt-1 border-t border-gray-100 dark:border-slate-700">
               <MarkdownView content={todo.description!} compact />
             </div>
           </motion.div>
@@ -492,17 +492,17 @@ function TodoDetailModal({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+        className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 头部 */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-900">
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-slate-700">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             {isEdit ? "编辑任务" : "新建任务"}
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500"
+            className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 dark:bg-slate-800 rounded-md text-gray-500 dark:text-gray-400 dark:text-gray-500"
             aria-label="关闭"
           >
             <X size={16} />
@@ -513,12 +513,12 @@ function TodoDetailModal({
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {/* 标题 */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">标题 *</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">标题 *</label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="任务标题"
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-tomato-400 outline-none text-sm"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:border-tomato-400 outline-none text-sm"
               autoFocus
             />
           </div>
@@ -526,7 +526,7 @@ function TodoDetailModal({
           {/* 优先级 + 四象限相关字段 */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">优先级</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">优先级</label>
               <div className="flex gap-2">
                 {([0, 1, 2] as const).map((p) => {
                   const cfg = PRIORITY_COLORS[p];
@@ -538,7 +538,7 @@ function TodoDetailModal({
                         "px-3 py-1.5 rounded-lg text-xs font-medium transition border flex-1",
                         priority === p
                           ? `${cfg.bg} ${cfg.text} border-current`
-                          : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                          : "bg-white dark:bg-slate-900 text-gray-500 dark:text-gray-400 dark:text-gray-500 border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 dark:border-slate-600"
                       )}
                     >
                       {cfg.label}
@@ -549,17 +549,17 @@ function TodoDetailModal({
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">截止时间</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">截止时间</label>
               <input
                 type="datetime-local"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-lg border border-gray-200 bg-white focus:border-tomato-400 outline-none text-sm"
+                className="w-full px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:border-tomato-400 outline-none text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">预计番茄数</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">预计番茄数</label>
               <input
                 type="number"
                 min={1}
@@ -567,23 +567,23 @@ function TodoDetailModal({
                 value={estimatedPomodoros}
                 onChange={(e) => setEstimatedPomodoros(e.target.value)}
                 placeholder="如 4"
-                className="w-full px-3 py-1.5 rounded-lg border border-gray-200 bg-white focus:border-tomato-400 outline-none text-sm"
+                className="w-full px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:border-tomato-400 outline-none text-sm"
               />
             </div>
           </div>
 
           {/* 描述（markdown） */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">
-              详情 <span className="text-gray-400 font-normal">（支持 Markdown）</span>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              详情 <span className="text-gray-400 dark:text-gray-500 font-normal">（支持 Markdown）</span>
             </label>
-            <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-              <div className="flex items-center gap-1 p-1.5 border-b border-gray-100 bg-gray-50/50">
+            <div className="rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden">
+              <div className="flex items-center gap-1 p-1.5 border-b border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50">
                 <button
                   onClick={() => setTab("edit")}
                   className={cn(
                     "px-2.5 py-1 rounded-md text-xs font-medium transition",
-                    tab === "edit" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                    tab === "edit" ? "bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 shadow-sm" : "text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 dark:text-gray-300"
                   )}
                 >
                   ✏️ 编辑
@@ -592,13 +592,13 @@ function TodoDetailModal({
                   onClick={() => setTab("preview")}
                   className={cn(
                     "px-2.5 py-1 rounded-md text-xs font-medium transition",
-                    tab === "preview" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                    tab === "preview" ? "bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 shadow-sm" : "text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 dark:text-gray-300"
                   )}
                 >
                   👁 预览
                 </button>
                 <div className="flex-1" />
-                <span className="text-[10px] text-gray-400 mr-1">{description.length} 字</span>
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 mr-1">{description.length} 字</span>
               </div>
               {tab === "edit" ? (
                 <textarea
@@ -606,14 +606,14 @@ function TodoDetailModal({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder={"支持 Markdown：\n# 标题\n- 列表\n**粗体** `代码`\n[链接](https://...)\n```\n代码块\n```"}
                   rows={10}
-                  className="w-full px-3 py-2.5 text-sm bg-white focus:outline-none resize-y font-mono"
+                  className="w-full px-3 py-2.5 text-sm bg-white dark:bg-slate-900 focus:outline-none resize-y font-mono"
                 />
               ) : (
                 <div className="px-3 py-2.5 min-h-[200px]">
                   {description.trim() ? (
                     <MarkdownView content={description} />
                   ) : (
-                    <p className="text-sm text-gray-400 italic">预览（暂无内容）</p>
+                    <p className="text-sm text-gray-400 dark:text-gray-500 italic">预览（暂无内容）</p>
                   )}
                 </div>
               )}
@@ -628,12 +628,12 @@ function TodoDetailModal({
         </div>
 
         {/* 底部 */}
-        <div className="flex items-center justify-between p-4 border-t border-gray-100">
+        <div className="flex items-center justify-between p-4 border-t border-gray-100 dark:border-slate-700">
           <div>
             {isEdit && (
               <button
                 onClick={handleDelete}
-                className="text-xs text-gray-500 hover:text-tomato-600 transition flex items-center gap-1"
+                className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500 hover:text-tomato-600 transition flex items-center gap-1"
               >
                 <Trash2 size={12} /> 删除
               </button>
@@ -642,7 +642,7 @@ function TodoDetailModal({
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition"
+              className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 dark:bg-slate-800 rounded-lg transition"
             >
               取消
             </button>

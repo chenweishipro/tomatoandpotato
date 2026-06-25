@@ -40,7 +40,7 @@ export default function HistoryPage() {
       });
   }, []);
 
-  if (loading) return <div className="text-center text-gray-400 py-20">加载中…</div>;
+  if (loading) return <div className="text-center text-gray-400 dark:text-gray-500 py-20">加载中…</div>;
 
   // 按日期分组
   const groups: Record<string, Item[]> = {};
@@ -53,12 +53,12 @@ export default function HistoryPage() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-4">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-2">📜 番茄历史</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">📜 番茄历史</h1>
 
       {items.length === 0 && (
-        <div className="bg-white/80 rounded-3xl p-12 text-center border border-gray-100">
+        <div className="bg-white/80 dark:bg-slate-900/80 rounded-3xl p-12 text-center border border-gray-100 dark:border-slate-700">
           <div className="text-5xl mb-3">🌱</div>
-          <p className="text-gray-500">还没有番茄记录，去专注一个吧</p>
+          <p className="text-gray-500 dark:text-gray-400 dark:text-gray-500">还没有番茄记录，去专注一个吧</p>
         </div>
       )}
 
@@ -73,13 +73,13 @@ export default function HistoryPage() {
             key={key}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100"
+            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 dark:border-slate-700"
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-semibold text-gray-700">
+              <div className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 {format(new Date(key), "yyyy 年 M 月 d 日 EEEE")}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-500">
                 {focusCount} 🍅 · {focusMin} 分钟
               </div>
             </div>
@@ -97,17 +97,17 @@ export default function HistoryPage() {
                 return (
                   <div
                     key={it.id}
-                    className="flex items-center gap-3 text-sm py-1.5 px-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800/50 transition group"
+                    className="flex items-center gap-3 text-sm py-1.5 px-2 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-800/50 transition group"
                   >
                     <Icon size={14} className={color} />
-                    <span className="text-gray-500 dark:text-gray-400 tabular-nums w-12">
+                    <span className="text-gray-500 dark:text-gray-400 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 tabular-nums w-12">
                       {format(new Date(it.completedAt), "HH:mm")}
                     </span>
-                    <span className="flex-1 min-w-0 text-gray-700 dark:text-gray-300 truncate">
-                      {it.todo ? it.todo.title : <span className="text-gray-400 italic">纯专注</span>}
+                    <span className="flex-1 min-w-0 text-gray-700 dark:text-gray-300 dark:text-gray-300 truncate">
+                      {it.todo ? it.todo.title : <span className="text-gray-400 dark:text-gray-500 italic">纯专注</span>}
                     </span>
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase px-1.5 py-0.5 rounded bg-gray-100 dark:bg-slate-700 tabular-nums">{typeLabel}</span>
-                    <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums w-10 text-right">{it.durationMin}m</span>
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 uppercase px-1.5 py-0.5 rounded bg-gray-100 dark:bg-slate-800 dark:bg-slate-700 tabular-nums">{typeLabel}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-gray-500 dark:text-gray-400 dark:text-gray-500 tabular-nums w-10 text-right">{it.durationMin}m</span>
                   </div>
                 );
               })}
