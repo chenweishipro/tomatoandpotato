@@ -31,7 +31,8 @@ HITS=0
 [ $(grep -c "setTodayMinutes" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
 [ $(grep -c "todayCount" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
 [ $(grep -c "行为" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
-echo "marker hits: $HITS / 5 (至少 1 个说明新代码到位)"
+[ $(grep -c "github" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
+echo "marker hits: $HITS / 6 (至少 1 个说明新代码到位)"
 if [ "$HITS" -eq 0 ]; then
   echo "FAIL: 新代码标志字符串都没找到, deploy 没成功"
   echo "debug: app/app/page.js size = $(stat -c %s $APP_JS) bytes"

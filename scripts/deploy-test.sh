@@ -28,7 +28,8 @@ HITS=0
 [ $(grep -c "今日番茄" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
 [ $(grep -c "todayCount" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
 [ $(grep -c "行为" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
-echo "marker hits: $HITS / 3 (至少 1 个)"
+[ $(grep -c "github" "$APP_JS") -gt 0 ] && HITS=$((HITS+1)) || true
+echo "marker hits: $HITS / 4 (至少 1 个)"
 if [ "$HITS" -eq 0 ]; then
   echo "FAIL: 新代码标志字符串都没找到"
   exit 1

@@ -13,5 +13,9 @@ export async function getCurrentUser() {
     wechatNickname?: string | null;
     wechatAvatar?: string | null;
     wechatBoundAt?: Date | string | null;
+    githubId?: number | null;
+    githubLogin?: string | null;
+    githubAvatar?: string | null;
+    githubBoundAt?: Date | string | null;
   };
 }

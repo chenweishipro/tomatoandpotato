@@ -23,6 +23,12 @@ model User {
   wechatAvatar   String?
   wechatBoundAt  DateTime?
 
+  // GitHub OAuth 登录
+  githubId       Int?      @unique // GitHub user id
+  githubLogin    String?   // GitHub username
+  githubAvatar   String?
+  githubBoundAt  DateTime?
+
   todos      Todo[]
   pomodoros  Pomodoro[]
   settings   Settings?
