@@ -24,7 +24,7 @@ export default function LoginPage() {
     setGithubLoading(true);
     try {
       const res = await apiJson<{ url: string; dev: boolean }>("/api/github/qrcode");
-      window.location.href = res.url;
+      window.location.href = res.url; // GitHub OAuth 跳转 (dev 模式跳 /api/github/dev-qr 模拟页)
     } catch (e: any) {
       setError(e?.message || "GitHub 登录失败");
       setGithubLoading(false);

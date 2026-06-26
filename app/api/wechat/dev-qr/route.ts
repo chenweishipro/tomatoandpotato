@@ -31,11 +31,11 @@ export async function GET(req: Request) {
   <div class="qr-box">📱</div>
   <p>配置 <code>WECHAT_APP_ID</code> + <code>WECHAT_APP_SECRET</code> 环境变量后可接入真微信扫码登录。</p>
   <p>现在点下方按钮模拟扫码成功</p>
-  <form method="POST" action="${new URL(req.url).origin}/tomato/api/wechat/dev-scan">
+  <form method="POST" action="${process.env.NEXTAUTH_URL || new URL(req.url).origin}/api/wechat/dev-scan">
     <input type="hidden" name="state" value="${new URL(req.url).searchParams.get("state") || ""}">
     <button class="btn" type="submit">✓ 模拟扫码成功</button>
   </form>
-  <a class="close" href="${new URL(req.url).origin}/tomato/login/">取消</a>
+  <a class="close" href="${process.env.NEXTAUTH_URL || new URL(req.url).origin}/login/">取消</a>
 </div>
 </body>
 </html>`;

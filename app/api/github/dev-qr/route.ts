@@ -29,11 +29,11 @@ export async function GET(req: Request) {
   <div class="icon">🐙</div>
   <p>配置 <code>GITHUB_CLIENT_ID</code> + <code>GITHUB_CLIENT_SECRET</code> 环境变量后可接入真 GitHub OAuth 登录。</p>
   <p>现在点下方按钮模拟 GitHub 授权成功</p>
-  <form method="POST" action="${new URL(req.url).origin}/tomato/api/github/dev-scan">
+  <form method="POST" action="${process.env.NEXTAUTH_URL || new URL(req.url).origin}/api/github/dev-scan">
     <input type="hidden" name="state" value="${new URL(req.url).searchParams.get("state") || ""}">
     <button class="btn" type="submit">✓ 模拟 GitHub 授权</button>
   </form>
-  <a class="close" style="display:block;margin-top:12px;color:#999;font-size:12px;text-decoration:none;" href="${new URL(req.url).origin}/tomato/login/">取消</a>
+  <a class="close" style="display:block;margin-top:12px;color:#999;font-size:12px;text-decoration:none;" href="${process.env.NEXTAUTH_URL || new URL(req.url).origin}/login/">取消</a>
 </div>
 </body>
 </html>`;
