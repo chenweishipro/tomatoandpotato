@@ -6,8 +6,6 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { WechatQrModal } from "@/components/wechat-qr-modal";
-import { apiJson } from "@/lib/api-client";
 
 export default function LoginPage() {
   const { t } = useT();
@@ -16,34 +14,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [wechatOpen, setWechatOpen] = useState(false);
-  const [githubLoading, setGithubLoading] = useState(false);
-
-  async function onGithubLogin() {
-    setError(null);
-    setGithubLoading(true);
-    try {
-      const res = await apiJson<{ url: string; dev: boolean }>("/api/github/qrcode");
-      window.location.href = res.url; // GitHub OAuth 跳转 (dev 模式跳 /api/github/dev-qr 模拟页)
-    } catch (e: any) {
-      setError(e?.message || "GitHub 登录失败");
-      setGithubLoading(false);
-    }
-  }
-
-  // 处理 wechat_bind 回调结果
-  if (typeof window !== "undefined") {
-    const params = new URLSearchParams(window.location.search);
-    const wechatErr = params.get("error");
-    if (wechatErr && wechatErr.startsWith("wechat_")) {
-      const errMap: Record<string, string> = {
-        wechat_no_code: "微信回调缺少 code",
-        wechat_failed: "微信登录失败",
-        wechat_bind_unauthorized: "绑定失败：请先登录",
-      };
-      if (!error) setError(errMap[wechatErr] || `微信错误: ${wechatErr}`);
-    }
-  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -132,38 +102,6 @@ export default function LoginPage() {
             {t("auth.forgotPassword")}
           </Link>
         </p>
-
-        {/* 分隔线 */}
-        <div className="flex items-center gap-3 mt-6">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs text-gray-400">或</span>
-          <div className="flex-1 h-px bg-gray-200" />
-        </div>
-
-        {/* 微信登录 */}
-        <button
-          onClick={() => setWechatOpen(true)}
-          className="w-full mt-4 py-2.5 bg-[#07c160] hover:bg-[#06ae56] text-white font-medium rounded-xl transition active:scale-[0.98] flex items-center justify-center gap-2"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8.69 11.52c-.36 0-.65-.3-.65-.66s.29-.66.65-.66.66.3.66.66-.3.66-.66.66zm6.62 0c-.36 0-.65-.3-.65-.66s.29-.66.65-.66.66.3.66.66-.3.66-.66.66zM9.4 18.36c-3.91 0-7.08-2.5-7.08-5.59 0-3.08 3.17-5.59 7.08-5.59s7.08 2.5 7.08 5.59c0 .31-.03.61-.08.91-.49-.13-1-.21-1.54-.21-3.36 0-6.09 2.16-6.09 4.82 0 .02 0 .05.01.07h-.38zm11.86-1.51c-2.7 0-4.89-1.74-4.89-3.88 0-2.14 2.19-3.88 4.89-3.88s4.89 1.74 4.89 3.88c0 .92-.41 1.76-1.1 2.42l.43 1.36-1.55-.78c-.77.16-1.57.16-2.67.16v.72zm-2.42-2.74c-.27 0-.49-.22-.49-.49s.22-.49.49-.49.49.22.49.49-.22.49-.49.49zm4.84 0c-.27 0-.49-.22-.49-.49s.22-.49.49-.49.49.22.49.49-.22.49-.49.49z" />
-          </svg>
-          微信登录
-        </button>
-
-        <WechatQrModal open={wechatOpen} onClose={() => setWechatOpen(false)} intent="login" />
-
-        {/* GitHub 登录 */}
-        <button
-          onClick={onGithubLogin}
-          disabled={githubLoading}
-          className="w-full mt-3 py-2.5 bg-[#24292e] hover:bg-[#1a1e22] disabled:opacity-60 text-white font-medium rounded-xl transition active:scale-[0.98] flex items-center justify-center gap-2"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.26.82-.577 0-.285-.01-1.04-.015-2.04-3.338.725-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.745.083-.73.083-.73 1.205.085 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.4 3-.405 1.02.005 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.298 24 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-          {githubLoading ? "跳转中…" : "GitHub 登录"}
-        </button>
       </motion.div>
     </div>
   );

@@ -8,14 +8,5 @@ export async function getCurrentUser() {
     id: string;
     email: string;
     name?: string | null;
-    wechatOpenid?: string | null;
-    wechatUnionid?: string | null;
-    wechatNickname?: string | null;
-    wechatAvatar?: string | null;
-    wechatBoundAt?: Date | string | null;
-    githubId?: number | null;
-    githubLogin?: string | null;
-    githubAvatar?: string | null;
-    githubBoundAt?: Date | string | null;
   };
 }
