@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider basePath="/tomato/api/auth">
+    <SessionProvider basePath="/carrot/api/auth">
       <ThemeProvider>{children}</ThemeProvider>
     </SessionProvider>
   );

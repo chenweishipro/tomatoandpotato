@@ -65,8 +65,8 @@ function ResetPasswordForm() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-tomato-50 via-white to-orange-50 px-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center justify-center mb-8 gap-2">
-          <span className="text-3xl">🍅</span>
-          <h1 className="text-2xl font-semibold text-gray-900">番茄土豆</h1>
+          <span className="text-3xl">🥕</span>
+          <h1 className="text-2xl font-semibold text-gray-900">胡萝卜</h1>
         </div>
 
         <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">

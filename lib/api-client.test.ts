@@ -12,12 +12,12 @@ beforeEach(() => {
 describe("apiFetch", () => {
   it("prepends /tomato to relative URLs starting with /", async () => {
     await apiFetch("/api/foo");
-    expect(fetchMock).toHaveBeenCalledWith("/tomato/api/foo", undefined);
+    expect(fetchMock).toHaveBeenCalledWith("/carrot/api/foo", undefined);
   });
 
-  it("prepends /tomato/ to relative URLs without leading slash", async () => {
+  it("prepends /carrot/ to relative URLs without leading slash", async () => {
     await apiFetch("api/foo");
-    expect(fetchMock).toHaveBeenCalledWith("/tomato/api/foo", undefined);
+    expect(fetchMock).toHaveBeenCalledWith("/carrot/api/foo", undefined);
   });
 
   it("does not prepend basePath to absolute URLs", async () => {
@@ -30,7 +30,7 @@ describe("apiFetch", () => {
 
   it("passes through options when given", async () => {
     await apiFetch("/api/foo", { method: "POST", body: "x" });
-    expect(fetchMock).toHaveBeenCalledWith("/tomato/api/foo", {
+    expect(fetchMock).toHaveBeenCalledWith("/carrot/api/foo", {
       method: "POST",
       body: "x",
     });

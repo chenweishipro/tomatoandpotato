@@ -49,7 +49,7 @@ export default function RegisterPage() {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <div className="text-6xl mb-3">🍅</div>
+          <div className="text-6xl mb-3">🥕</div>
           <h1 className="text-2xl font-bold text-gray-900">开始使用</h1>
           <p className="text-sm text-gray-500 mt-1">创建你的账号</p>
         </div>

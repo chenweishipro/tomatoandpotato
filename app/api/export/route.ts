@@ -32,7 +32,7 @@ export async function GET(req: Request) {
   if (format === "csv") {
     // 简化 CSV: 只导出 todos + pomodoros 两个核心表
     const csv: string[] = [];
-    csv.push("# 番茄土豆 数据导出");
+    csv.push("# 胡萝卜 数据导出");
     csv.push(`# 导出时间: ${exportedAt}`);
     csv.push(`# 用户: ${user.email}`);
     csv.push("");

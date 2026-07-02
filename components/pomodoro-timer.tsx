@@ -516,10 +516,10 @@ export function PomodoroTimer({
       return;
     }
     const names: Record<string, string> = {
-      rain: "雨声 · 番茄土豆",
-      cafe: "咖啡馆 · 番茄土豆",
-      forest: "森林 · 番茄土豆",
-      ocean: "海浪 · 番茄土豆",
+      rain: "雨声 · 胡萝卜",
+      cafe: "咖啡馆 · 胡萝卜",
+      forest: "森林 · 胡萝卜",
+      ocean: "海浪 · 胡萝卜",
     };
     navigator.mediaSession.metadata = new MediaMetadata({
       title: names[sound] || "环境音乐",

@@ -23,8 +23,8 @@ export function Header({ user }: { user: { name?: string | null; email?: string 
     <header className="sticky top-0 z-30 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border-b border-gray-100 dark:border-slate-800">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-4">
         <Link href="/app" className="flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100">
-          <span className="text-xl">🍅</span>
-          <span className="hidden sm:inline">番茄土豆</span>
+          <span className="text-xl">🥕</span>
+          <span className="hidden sm:inline">胡萝卜</span>
         </Link>
 
         <nav className="flex-1 flex items-center gap-1 ml-2 sm:ml-6">

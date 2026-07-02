@@ -16,7 +16,7 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-/* 番茄进度环 */
+/* 胡萝卜进度环 */
 .timer-ring {
   transform: rotate(-90deg);
   transform-origin: 50% 50%;

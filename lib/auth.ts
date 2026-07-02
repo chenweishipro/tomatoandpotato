@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: {
-    signIn: "/tomato/login",
+    signIn: "/carrot/login",
   },
   useSecureCookies: false,
   providers: [

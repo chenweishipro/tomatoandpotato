@@ -41,8 +41,8 @@ export default function LoginPage() {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <div className="text-6xl mb-3">🍅</div>
-          <h1 className="text-2xl font-bold text-gray-900">番茄土豆</h1>
+          <div className="text-6xl mb-3">🥕</div>
+          <h1 className="text-2xl font-bold text-gray-900">胡萝卜</h1>
           <p className="text-sm text-gray-500 mt-1">专注每一刻</p>
         </div>
 

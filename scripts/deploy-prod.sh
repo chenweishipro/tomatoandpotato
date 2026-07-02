@@ -42,9 +42,14 @@ ls .next/standalone/public/
 
 # === 杀老进程 + restart service ===
 echo "=== Restart service ==="
+# 关键: kill 所有 next-server 僵尸 (老版本可能没 "server.js" 字样)
+echo "Cws647378?!" | sudo -S pkill -9 -f "next-server" 2>/dev/null || true
 echo "Cws647378?!" | sudo -S pkill -9 -f "server.js" 2>/dev/null || true
 sleep 2
-echo "Cws647378?!" | sudo -S systemctl start tomato
+# 确认端口空
+PID=$(echo "Cws647378?!" | sudo -S ss -tlnp 2>/dev/null | grep ":7893" | grep -oP "pid=\K[0-9]+" | head -1)
+[ -n "$PID" ] && echo "Cws647378?!" | sudo -S kill -9 $PID && sleep 2
+echo "Cws647378?!" | sudo -S systemctl restart tomato
 sleep 5
 ACTIVE=$(echo "Cws647378?!" | sudo -S systemctl is-active tomato 2>&1)
 echo "service status: $ACTIVE"

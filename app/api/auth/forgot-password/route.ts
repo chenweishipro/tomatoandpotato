@@ -4,10 +4,10 @@ import { prisma } from "@/lib/prisma";
 
 // 邮件发送: 优先用 SMTP, 否则写日志
 async function sendResetEmail(email: string, link: string) {
-  const subject = "【番茄土豆】重置密码";
+  const subject = "【胡萝卜】重置密码";
   const html = `
     <div style="font-family: -apple-system, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-      <h2 style="color: #fa472f; margin: 0 0 16px;">🍅 番茄土豆</h2>
+      <h2 style="color: #fa472f; margin: 0 0 16px;">🍅 胡萝卜</h2>
       <p>你好,</p>
       <p>我们收到了重置你密码的请求。点击下方按钮重置（链接 1 小时内有效）：</p>
       <p style="margin: 24px 0;">

@@ -130,13 +130,13 @@ export default function SettingsPage() {
 <Section title="📦 数据导出">
         <div className="flex flex-wrap gap-2">
           <a
-            href="/tomato/api/export?format=json"
+            href="/carrot/api/export?format=json"
             className="px-3 py-1.5 text-sm rounded-lg bg-tomato-500 text-white hover:bg-tomato-600"
           >
             ⬇️ 导出 JSON
           </a>
           <a
-            href="/tomato/api/export?format=csv"
+            href="/carrot/api/export?format=csv"
             className="px-3 py-1.5 text-sm rounded-lg bg-tomato-100 text-tomato-700 hover:bg-tomato-200"
           >
             ⬇️ 导出 CSV
@@ -202,7 +202,7 @@ function TestButtons({ desktopNotif, soundEnabled }: { desktopNotif: boolean; so
     const perm = await Notification.requestPermission();
     setNotifPerm(perm);
     if (perm === "granted") {
-      new Notification("🍅 番茄土豆", { body: "通知已开启！番茄完成时会提醒你。", icon: "🍅" });
+      new Notification("🥕 胡萝卜", { body: "通知已开启！番茄完成时会提醒你。", icon: "🍅" });
     }
   }
 
